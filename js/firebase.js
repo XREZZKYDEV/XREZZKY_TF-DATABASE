@@ -8,12 +8,13 @@ import { getDatabase, ref, get, set, update, remove, child } from 'firebase/data
 /**
  * Initialize Firebase app with config
  * @param {Object} config - Firebase config object
+ * @param {string} name - App name (optional)
  * @returns {Object} Firebase app instance
  */
-export function initFirebaseApp(config) {
+export function initFirebaseApp(config, name = null) {
     try {
-        const app = initializeApp(config, `app_${Date.now()}`);
-        return app;
+        const appName = name || `app_${Date.now()}`;
+        return initializeApp(config, appName);
     } catch (error) {
         throw new Error(`Failed to initialize Firebase: ${error.message}`);
     }
@@ -237,19 +238,17 @@ export function validateConfig(config) {
         // Must be Firebase Realtime Database domain
         const validDomains = [
             'firebaseio.com',
-            'firebasedatabase.app',
-            'firebaseio.com/',
-            'firebasedatabase.app/'
+            'firebasedatabase.app'
         ];
         
         const isValidDomain = validDomains.some(domain => 
-            url.hostname.endsWith(domain.replace('/', ''))
+            url.hostname.endsWith(domain)
         );
         
         if (!isValidDomain) {
             return {
                 valid: false,
-                error: 'Invalid database URL. Must be a Firebase Realtime Database URL (e.g., https://project-id.firebaseio.com or https://project-id.firebasedatabase.app)'
+                error: 'Invalid database URL. Must be a Firebase Realtime Database URL'
             };
         }
         
@@ -276,27 +275,6 @@ export async function hasData(db) {
         return snapshot.exists();
     } catch (error) {
         return false;
-    }
-}
-
-/**
- * Get database size estimate
- * @param {Object} db - Database instance
- * @returns {Promise<number>} Size in bytes
- */
-export async function getDatabaseSize(db) {
-    try {
-        const rootRef = ref(db, '/');
-        const snapshot = await get(rootRef);
-        
-        if (!snapshot.exists()) {
-            return 0;
-        }
-        
-        const data = snapshot.val();
-        return estimateSize(data);
-    } catch (error) {
-        return 0;
     }
 }
 
@@ -333,178 +311,7 @@ export async function getDatabaseStats(db) {
 }
 
 /**
- * Get child nodes from a path
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @returns {Promise<Object>} Child nodes
- */
-export async function getChildren(db, path = '/') {
-    try {
-        const nodeRef = ref(db, path);
-        const snapshot = await get(nodeRef);
-        
-        if (!snapshot.exists()) {
-            return {};
-        }
-        
-        return snapshot.val();
-    } catch (error) {
-        throw new Error(`Failed to get children: ${error.message}`);
-    }
-}
-
-/**
- * Get nested object from database
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @returns {Promise<Object>} Nested object
- */
-export async function getNestedObject(db, path = '/') {
-    try {
-        const nodeRef = ref(db, path);
-        const snapshot = await get(nodeRef);
-        
-        if (!snapshot.exists()) {
-            return null;
-        }
-        
-        return snapshot.val();
-    } catch (error) {
-        throw new Error(`Failed to get nested object: ${error.message}`);
-    }
-}
-
-/**
- * Update specific path in database
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @param {*} data - Data to update
- * @returns {Promise<void>}
- */
-export async function updatePath(db, path, data) {
-    try {
-        const nodeRef = ref(db, path);
-        await update(nodeRef, data);
-    } catch (error) {
-        throw new Error(`Failed to update path: ${error.message}`);
-    }
-}
-
-/**
- * Set specific path in database
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @param {*} data - Data to set
- * @returns {Promise<void>}
- */
-export async function setPath(db, path, data) {
-    try {
-        const nodeRef = ref(db, path);
-        await set(nodeRef, data);
-    } catch (error) {
-        throw new Error(`Failed to set path: ${error.message}`);
-    }
-}
-
-/**
- * Remove specific path from database
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @returns {Promise<void>}
- */
-export async function removePath(db, path) {
-    try {
-        const nodeRef = ref(db, path);
-        await remove(nodeRef);
-    } catch (error) {
-        throw new Error(`Failed to remove path: ${error.message}`);
-    }
-}
-
-/**
- * Push data to database
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @param {*} data - Data to push
- * @returns {Promise<string>} Key of pushed data
- */
-export async function pushData(db, path, data) {
-    try {
-        const nodeRef = ref(db, path);
-        const newRef = child(nodeRef, Date.now().toString());
-        await set(newRef, data);
-        return newRef.key;
-    } catch (error) {
-        throw new Error(`Failed to push data: ${error.message}`);
-    }
-}
-
-/**
- * Check if path exists
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @returns {Promise<boolean>} Path exists
- */
-export async function pathExists(db, path) {
-    try {
-        const nodeRef = ref(db, path);
-        const snapshot = await get(nodeRef);
-        return snapshot.exists();
-    } catch (error) {
-        return false;
-    }
-}
-
-/**
- * Get value from path
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @returns {Promise<*>} Value at path
- */
-export async function getValue(db, path) {
-    try {
-        const nodeRef = ref(db, path);
-        const snapshot = await get(nodeRef);
-        return snapshot.exists() ? snapshot.val() : null;
-    } catch (error) {
-        throw new Error(`Failed to get value: ${error.message}`);
-    }
-}
-
-/**
- * Perform transaction
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @param {Function} transactionUpdate - Transaction update function
- * @returns {Promise<Object>} Transaction result
- */
-export async function performTransaction(db, path, transactionUpdate) {
-    try {
-        const nodeRef = ref(db, path);
-        const result = await nodeRef.transaction(transactionUpdate);
-        return result;
-    } catch (error) {
-        throw new Error(`Transaction failed: ${error.message}`);
-    }
-}
-
-/**
- * Listen to path changes (for debugging)
- * @param {Object} db - Database instance
- * @param {string} path - Database path
- * @param {Function} callback - Callback function
- * @returns {Function} Unsubscribe function
- */
-export function listenToPath(db, path, callback) {
-    const nodeRef = ref(db, path);
-    const unsubscribe = onValue(nodeRef, (snapshot) => {
-        callback(snapshot.exists() ? snapshot.val() : null);
-    });
-    return unsubscribe;
-}
-
-/**
- * Export all database functions
+ * Export default
  */
 export default {
     initFirebaseApp,
@@ -515,16 +322,5 @@ export default {
     verifyData,
     validateConfig,
     hasData,
-    getDatabaseSize,
-    getDatabaseStats,
-    getChildren,
-    getNestedObject,
-    updatePath,
-    setPath,
-    removePath,
-    pushData,
-    pathExists,
-    getValue,
-    performTransaction,
-    listenToPath
+    getDatabaseStats
 };
