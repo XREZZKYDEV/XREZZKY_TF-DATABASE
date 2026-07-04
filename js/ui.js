@@ -22,6 +22,8 @@ const elements = {
         info: document.getElementById('sourceConnectionInfo'),
         projectName: document.getElementById('sourceProjectName'),
         dbUrl: document.getElementById('sourceDbUrl'),
+        pasteBtn: document.getElementById('pasteSourceBtn'),
+        textarea: document.getElementById('sourceConfigTextarea'),
     },
     dest: {
         apiKey: document.getElementById('destApiKey'),
@@ -36,6 +38,8 @@ const elements = {
         info: document.getElementById('destConnectionInfo'),
         projectName: document.getElementById('destProjectName'),
         dbUrl: document.getElementById('destDbUrl'),
+        pasteBtn: document.getElementById('pasteDestBtn'),
+        textarea: document.getElementById('destConfigTextarea'),
     },
     options: {
         overwrite: document.getElementById('optOverwrite'),
@@ -60,6 +64,91 @@ const elements = {
 let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
+
+/**
+ * Parse Firebase config from text
+ * @param {string} text - Firebase config text
+ * @returns {Object} Parsed config
+ */
+function parseFirebaseConfig(text) {
+    try {
+        // Try to extract firebaseConfig object
+        let configText = text;
+        
+        // Find firebaseConfig object
+        const configMatch = text.match(/const\s+firebaseConfig\s*=\s*({[\s\S]*?});/);
+        if (configMatch) {
+            configText = configMatch[1];
+        }
+        
+        // Find firebaseConfig with different variable names
+        const configMatch2 = text.match(/const\s+config\s*=\s*({[\s\S]*?});/);
+        if (configMatch2 && !configMatch) {
+            configText = configMatch2[1];
+        }
+        
+        // Find any object with Firebase config keys
+        const configMatch3 = text.match(/({[\s\S]*?(?:apiKey|authDomain|databaseURL|projectId)[\s\S]*?})/);
+        if (configMatch3 && !configMatch && !configMatch2) {
+            configText = configMatch3[1];
+        }
+        
+        // Clean up and parse
+        const cleaned = configText
+            .replace(/\/\/.*$/gm, '') // Remove comments
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .replace(/(\w+):/g, '"$1":') // Add quotes to keys
+            .replace(/'/g, '"'); // Replace single quotes with double quotes
+        
+        // Parse JSON
+        const config = JSON.parse(cleaned);
+        
+        // Validate required fields
+        const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
+        const missing = required.filter(field => !config[field]);
+        
+        if (missing.length > 0) {
+            throw new Error(`Missing required fields: ${missing.join(', ')}`);
+        }
+        
+        return config;
+    } catch (error) {
+        throw new Error(`Failed to parse Firebase config: ${error.message}`);
+    }
+}
+
+/**
+ * Fill form with config
+ * @param {string} type - 'source' or 'dest'
+ * @param {Object} config - Firebase config
+ */
+function fillFormWithConfig(type, config) {
+    const el = elements[type];
+    
+    el.apiKey.value = config.apiKey || '';
+    el.authDomain.value = config.authDomain || '';
+    el.databaseURL.value = config.databaseURL || '';
+    el.projectId.value = config.projectId || '';
+    el.storageBucket.value = config.storageBucket || '';
+    el.messagingSenderId.value = config.messagingSenderId || '';
+    el.appId.value = config.appId || '';
+    
+    // Reset connection status
+    if (type === 'source') {
+        sourceConnected = false;
+        el.status.textContent = 'Not Connected';
+        el.status.className = 'status-badge';
+        el.info.style.display = 'none';
+    } else {
+        destConnected = false;
+        el.status.textContent = 'Not Connected';
+        el.status.className = 'status-badge';
+        el.info.style.display = 'none';
+    }
+    
+    updateStartButton();
+    logger.info(`${type === 'source' ? 'Source' : 'Destination'} config filled from paste`);
+}
 
 /**
  * Update UI for source connection status
@@ -192,6 +281,92 @@ export function updateSummary(summary) {
  * Initialize UI event handlers
  */
 export function initializeUI() {
+    // Source paste button
+    elements.source.pasteBtn.addEventListener('click', () => {
+        const textarea = elements.source.textarea;
+        if (textarea.style.display === 'block') {
+            textarea.style.display = 'none';
+            elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
+            return;
+        }
+        textarea.style.display = 'block';
+        textarea.classList.add('active');
+        elements.source.pasteBtn.textContent = '❌ Cancel';
+        textarea.focus();
+    });
+    
+    // Source paste textarea
+    elements.source.textarea.addEventListener('blur', () => {
+        // Don't auto-close on blur, user can click cancel
+    });
+    
+    elements.source.textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            elements.source.textarea.style.display = 'none';
+            elements.source.textarea.classList.remove('active');
+            elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
+        }
+    });
+    
+    // Source paste submit (Ctrl+Enter or Cmd+Enter)
+    elements.source.textarea.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            try {
+                const config = parseFirebaseConfig(elements.source.textarea.value);
+                fillFormWithConfig('source', config);
+                elements.source.textarea.style.display = 'none';
+                elements.source.textarea.classList.remove('active');
+                elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
+                logger.success('Source config pasted successfully');
+            } catch (error) {
+                logger.error(`Failed to parse source config: ${error.message}`);
+                alert(`Failed to parse config: ${error.message}`);
+            }
+        }
+    });
+    
+    // Destination paste button
+    elements.dest.pasteBtn.addEventListener('click', () => {
+        const textarea = elements.dest.textarea;
+        if (textarea.style.display === 'block') {
+            textarea.style.display = 'none';
+            elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
+            return;
+        }
+        textarea.style.display = 'block';
+        textarea.classList.add('active');
+        elements.dest.pasteBtn.textContent = '❌ Cancel';
+        textarea.focus();
+    });
+    
+    // Destination paste textarea
+    elements.dest.textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            elements.dest.textarea.style.display = 'none';
+            elements.dest.textarea.classList.remove('active');
+            elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
+        }
+    });
+    
+    // Destination paste submit (Ctrl+Enter or Cmd+Enter)
+    elements.dest.textarea.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            try {
+                const config = parseFirebaseConfig(elements.dest.textarea.value);
+                fillFormWithConfig('dest', config);
+                elements.dest.textarea.style.display = 'none';
+                elements.dest.textarea.classList.remove('active');
+                elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
+                logger.success('Destination config pasted successfully');
+            } catch (error) {
+                logger.error(`Failed to parse destination config: ${error.message}`);
+                alert(`Failed to parse config: ${error.message}`);
+            }
+        }
+    });
+    
     // Source test
     elements.source.testBtn.addEventListener('click', async () => {
         const config = getConfig('source');
@@ -278,7 +453,6 @@ export function initializeUI() {
  * @returns {Object} Firebase config
  */
 function getConfig(type) {
-    const prefix = type === 'source' ? 'source' : 'dest';
     const el = elements[type];
     
     return {
