@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Firebase Database Migration</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -19,21 +15,11 @@
             padding: 20px;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #121829;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #2a3a5c;
-            border-radius: 4px;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #121829; }
+        ::-webkit-scrollbar-thumb { background: #2a3a5c; border-radius: 4px; }
 
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .app-container { max-width: 1400px; margin: 0 auto; }
 
         .app-header {
             background: #121829;
@@ -43,11 +29,7 @@
             margin-bottom: 30px;
         }
 
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 
         .app-header h1 {
             font-size: 28px;
@@ -66,29 +48,13 @@
             border: 1px solid #2a3a5c;
         }
 
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
+        .main-content { display: flex; flex-direction: column; gap: 24px; }
 
-        .config-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
-        @media (max-width: 1024px) {
-            .config-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 1024px) { .config-grid { grid-template-columns: 1fr; } }
 
-        .config-card,
-        .options-card,
-        .progress-card,
-        .logs-card,
-        .summary-card {
+        .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card {
             background: #121829;
             border: 1px solid #2a3a5c;
             border-radius: 12px;
@@ -102,13 +68,11 @@
             margin-bottom: 20px;
             padding-bottom: 12px;
             border-bottom: 1px solid #2a3a5c;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .card-header h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #e8edf5;
-        }
+        .card-header h2, .card-header h3 { font-size: 18px; font-weight: 600; color: #e8edf5; }
 
         .status-badge {
             font-size: 13px;
@@ -119,36 +83,12 @@
             border: 1px solid #2a3a5c;
         }
 
-        .status-badge.connected {
-            background: rgba(74, 222, 128, 0.15);
-            color: #4ade80;
-            border-color: #4ade80;
-        }
+        .status-badge.connected { background: rgba(74, 222, 128, 0.15); color: #4ade80; border-color: #4ade80; }
+        .status-badge.error { background: rgba(248, 113, 113, 0.15); color: #f87171; border-color: #f87171; }
 
-        .status-badge.error {
-            background: rgba(248, 113, 113, 0.15);
-            color: #f87171;
-            border-color: #f87171;
-        }
-
-        .config-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .form-group label {
-            font-size: 13px;
-            color: #8892b0;
-            font-weight: 500;
-            font-family: 'Courier New', monospace;
-        }
+        .config-form { display: flex; flex-direction: column; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 13px; color: #8892b0; font-weight: 500; font-family: 'Courier New', monospace; }
 
         .form-group input {
             background: #0d1326;
@@ -159,13 +99,9 @@
             font-size: 14px;
             font-family: 'Courier New', monospace;
         }
+        .form-group input:focus { outline: none; border-color: #4a9eff; }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #4a9eff;
-        }
-
-        .btn-test {
+        .btn-test, .btn-secondary {
             background: #0d1326;
             border: 1px solid #2a3a5c;
             border-radius: 8px;
@@ -176,16 +112,8 @@
             cursor: pointer;
             margin-top: 4px;
         }
-
-        .btn-test:hover:not(:disabled) {
-            background: #2a3a5c;
-            border-color: #4a9eff;
-        }
-
-        .btn-test:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-test:hover:not(:disabled), .btn-secondary:hover:not(:disabled) { background: #2a3a5c; border-color: #4a9eff; }
+        .btn-test:disabled, .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .btn-migrate {
             background: linear-gradient(135deg, #4a9eff, #7c3aed);
@@ -200,18 +128,11 @@
             max-width: 400px;
             margin: 0 auto;
         }
+        .btn-migrate.danger { background: linear-gradient(135deg, #f87171, #b91c1c); }
+        .btn-migrate:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-migrate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-        .btn-migrate:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .btn-migrate:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-clear-logs {
+        .btn-clear-logs, .btn-mini {
             background: #0d1326;
             border: 1px solid #2a3a5c;
             border-radius: 6px;
@@ -220,11 +141,7 @@
             font-size: 12px;
             cursor: pointer;
         }
-
-        .btn-clear-logs:hover {
-            background: #2a3a5c;
-            color: #e8edf5;
-        }
+        .btn-clear-logs:hover, .btn-mini:hover { background: #2a3a5c; color: #e8edf5; }
 
         .connection-info {
             margin-top: 16px;
@@ -234,244 +151,110 @@
             flex-direction: column;
             gap: 6px;
         }
+        .info-row { display: flex; gap: 12px; font-size: 14px; }
+        .info-label { color: #8892b0; min-width: 110px; }
+        .info-value { color: #e8edf5; font-family: 'Courier New', monospace; font-size: 13px; word-break: break-all; }
+        .info-value.success { color: #4ade80; }
 
-        .info-row {
-            display: flex;
-            gap: 12px;
-            font-size: 14px;
-        }
+        .options-card h3, .nodes-card h3, .mode-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #e8edf5; }
 
-        .info-label {
-            color: #8892b0;
-            min-width: 110px;
-        }
-
-        .info-value {
-            color: #e8edf5;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            word-break: break-all;
-        }
-
-        .info-value.success {
-            color: #4ade80;
-        }
-
-        .options-card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #e8edf5;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
         .option-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #8892b0;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            background: #0d1326;
+            display: flex; align-items: center; gap: 10px; font-size: 14px; color: #8892b0;
+            cursor: pointer; padding: 8px 12px; border-radius: 8px; background: #0d1326;
         }
+        .option-item:hover { background: #2a3a5c; }
+        .option-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a9eff; cursor: pointer; }
+        .option-item.disabled { opacity: 0.5; pointer-events: none; }
 
-        .option-item:hover {
-            background: #2a3a5c;
+        .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+        .mode-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 10px;
+            background: #0d1326; border: 2px solid #2a3a5c; cursor: pointer;
         }
+        .mode-item.selected { border-color: #4a9eff; }
+        .mode-item.selected.danger-selected { border-color: #f87171; }
+        .mode-item input[type="radio"] { margin-top: 3px; width: 16px; height: 16px; accent-color: #4a9eff; }
+        .mode-title { font-weight: 600; font-size: 14px; color: #e8edf5; }
+        .mode-desc { font-size: 12px; color: #8892b0; margin-top: 2px; }
 
-        .option-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #4a9eff;
-            cursor: pointer;
+        .nodes-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+        .nodes-toolbar .hint { font-size: 12px; color: #8892b0; margin-left: auto; }
+
+        .nodes-list {
+            display: flex; flex-direction: column; gap: 6px;
+            max-height: 320px; overflow-y: auto;
+            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px; padding: 10px;
         }
-
-        .action-section {
-            display: flex;
-            justify-content: center;
-            padding: 12px 0;
+        .node-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 10px; border-radius: 6px; background: #0d1326;
+            font-family: 'Courier New', monospace; font-size: 13px;
         }
+        .node-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4a9eff; cursor: pointer; }
+        .node-key { color: #e8edf5; font-weight: 600; flex: 1; }
+        .node-type { color: #8892b0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #121829; border: 1px solid #2a3a5c; }
+        .node-empty-hint { color: #8892b0; font-size: 13px; padding: 20px; text-align: center; }
 
-        .progress-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .action-section { display: flex; justify-content: center; padding: 12px 0; }
 
-        .progress-bar-track {
-            width: 100%;
-            height: 8px;
-            background: #0d1326;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
+        .progress-container { display: flex; flex-direction: column; gap: 12px; }
+        .progress-bar-track { width: 100%; height: 8px; background: #0d1326; border-radius: 10px; overflow: hidden; }
         .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4a9eff, #7c3aed);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-            width: 0%;
+            height: 100%; background: linear-gradient(90deg, #4a9eff, #7c3aed);
+            border-radius: 10px; transition: width 0.5s ease; width: 0%;
         }
+        .progress-info { display: flex; justify-content: space-between; font-size: 14px; color: #8892b0; }
+        .progress-percentage { font-weight: 600; color: #4a9eff; }
+        .progress-status { color: #8892b0; }
 
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: #8892b0;
+        .node-status-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+        .node-status-row {
+            display: flex; justify-content: space-between; gap: 10px;
+            font-family: 'Courier New', monospace; font-size: 12px;
+            background: #0d1326; padding: 6px 12px; border-radius: 6px; color: #8892b0;
         }
+        .node-status-row.ok { color: #4ade80; }
+        .node-status-row.fail { color: #f87171; }
+        .node-status-row.running { color: #4a9eff; }
 
-        .progress-percentage {
-            font-weight: 600;
-            color: #4a9eff;
-        }
-
-        .progress-status {
-            color: #8892b0;
-        }
-
-        .logs-card .logs-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .logs-card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #e8edf5;
-        }
+        .logs-card .logs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .logs-card h3 { font-size: 16px; font-weight: 600; color: #e8edf5; }
 
         .logs-terminal {
-            background: #0a0e1a;
-            border: 1px solid #2a3a5c;
-            border-radius: 8px;
-            padding: 16px;
-            min-height: 200px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.8;
+            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px; padding: 16px;
+            min-height: 200px; max-height: 400px; overflow-y: auto;
+            font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8;
         }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(42, 58, 92, 0.2); }
+        .log-entry:last-child { border-bottom: none; }
+        .log-entry.info { color: #8892b0; }
+        .log-entry.success { color: #4ade80; }
+        .log-entry.error { color: #f87171; }
+        .log-entry.warning { color: #fbbf24; }
+        .log-entry.progress { color: #4a9eff; }
 
-        .log-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(42, 58, 92, 0.2);
-        }
-
-        .log-entry:last-child {
-            border-bottom: none;
-        }
-
-        .log-entry.info {
-            color: #8892b0;
-        }
-        .log-entry.success {
-            color: #4ade80;
-        }
-        .log-entry.error {
-            color: #f87171;
-        }
-        .log-entry.warning {
-            color: #fbbf24;
-        }
-        .log-entry.progress {
-            color: #4a9eff;
-        }
-
-        .summary-card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #e8edf5;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .summary-item {
-            background: #0d1326;
-            padding: 16px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .summary-label {
-            font-size: 12px;
-            color: #8892b0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .summary-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #e8edf5;
-            font-family: 'Courier New', monospace;
-        }
-
-        .summary-value.success {
-            color: #4ade80;
-        }
-        .summary-value.error {
-            color: #f87171;
-        }
+        .summary-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #e8edf5; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .summary-item { background: #0d1326; padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .summary-label { font-size: 12px; color: #8892b0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-value { font-size: 18px; font-weight: 600; color: #e8edf5; font-family: 'Courier New', monospace; }
+        .summary-value.success { color: #4ade80; }
+        .summary-value.error { color: #f87171; }
 
         @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            .app-header h1 {
-                font-size: 22px;
-            }
-            .config-card,
-            .options-card,
-            .progress-card,
-            .logs-card,
-            .summary-card {
-                padding: 16px;
-            }
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-            .summary-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .btn-migrate {
-                max-width: 100%;
-                font-size: 16px;
-                padding: 14px 20px;
-            }
+            body { padding: 12px; }
+            .app-header h1 { font-size: 22px; }
+            .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card { padding: 16px; }
+            .options-grid { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .btn-migrate { max-width: 100%; font-size: 16px; padding: 14px 20px; }
         }
-
         @media (max-width: 480px) {
-            .app-header h1 {
-                font-size: 18px;
-            }
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-            .info-row {
-                flex-direction: column;
-                gap: 2px;
-            }
-            .info-label {
-                min-width: auto;
-            }
+            .app-header h1 { font-size: 18px; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .info-row { flex-direction: column; gap: 2px; }
+            .info-label { min-width: auto; }
         }
     </style>
 </head>
@@ -480,7 +263,7 @@
         <header class="app-header">
             <div class="header-content">
                 <h1>🔥 Firebase Database Migration</h1>
-                <span class="version">v1.0.0</span>
+                <span class="version">v2.0.0</span>
             </div>
         </header>
 
@@ -494,50 +277,20 @@
                     </div>
 
                     <div class="config-form">
-                        <div class="form-group">
-                            <label for="sourceApiKey">apiKey</label>
-                            <input type="text" id="sourceApiKey" placeholder="Masukkan apiKey" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceAuthDomain">authDomain</label>
-                            <input type="text" id="sourceAuthDomain" placeholder="Masukkan authDomain" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceDatabaseURL">databaseURL</label>
-                            <input type="text" id="sourceDatabaseURL" placeholder="https://project-id.firebaseio.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceProjectId">projectId</label>
-                            <input type="text" id="sourceProjectId" placeholder="Masukkan projectId" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceStorageBucket">storageBucket</label>
-                            <input type="text" id="sourceStorageBucket" placeholder="project-id.appspot.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceMessagingSenderId">messagingSenderId</label>
-                            <input type="text" id="sourceMessagingSenderId" placeholder="Masukkan messagingSenderId" />
-                        </div>
-                        <div class="form-group">
-                            <label for="sourceAppId">appId</label>
-                            <input type="text" id="sourceAppId" placeholder="1:xxx:web:xxx" />
-                        </div>
+                        <div class="form-group"><label for="sourceApiKey">apiKey</label><input type="text" id="sourceApiKey" placeholder="Masukkan apiKey" /></div>
+                        <div class="form-group"><label for="sourceAuthDomain">authDomain</label><input type="text" id="sourceAuthDomain" placeholder="Masukkan authDomain" /></div>
+                        <div class="form-group"><label for="sourceDatabaseURL">databaseURL</label><input type="text" id="sourceDatabaseURL" placeholder="https://project-id.firebaseio.com" /></div>
+                        <div class="form-group"><label for="sourceProjectId">projectId</label><input type="text" id="sourceProjectId" placeholder="Masukkan projectId" /></div>
+                        <div class="form-group"><label for="sourceStorageBucket">storageBucket</label><input type="text" id="sourceStorageBucket" placeholder="project-id.appspot.com" /></div>
+                        <div class="form-group"><label for="sourceMessagingSenderId">messagingSenderId</label><input type="text" id="sourceMessagingSenderId" placeholder="Masukkan messagingSenderId" /></div>
+                        <div class="form-group"><label for="sourceAppId">appId</label><input type="text" id="sourceAppId" placeholder="1:xxx:web:xxx" /></div>
                         <button class="btn-test" id="testSourceBtn">🔍 Test Connection</button>
                     </div>
 
                     <div class="connection-info" id="sourceConnectionInfo" style="display:none;">
-                        <div class="info-row">
-                            <span class="info-label">Status:</span>
-                            <span class="info-value success">✅ Connected</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Project:</span>
-                            <span class="info-value" id="sourceProjectName">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Database URL:</span>
-                            <span class="info-value" id="sourceDbUrl">-</span>
-                        </div>
+                        <div class="info-row"><span class="info-label">Status:</span><span class="info-value success">✅ Connected</span></div>
+                        <div class="info-row"><span class="info-label">Project:</span><span class="info-value" id="sourceProjectName">-</span></div>
+                        <div class="info-row"><span class="info-label">Database URL:</span><span class="info-value" id="sourceDbUrl">-</span></div>
                     </div>
                 </section>
 
@@ -549,72 +302,75 @@
                     </div>
 
                     <div class="config-form">
-                        <div class="form-group">
-                            <label for="destApiKey">apiKey</label>
-                            <input type="text" id="destApiKey" placeholder="Masukkan apiKey" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destAuthDomain">authDomain</label>
-                            <input type="text" id="destAuthDomain" placeholder="Masukkan authDomain" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destDatabaseURL">databaseURL</label>
-                            <input type="text" id="destDatabaseURL" placeholder="https://project-id.firebaseio.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destProjectId">projectId</label>
-                            <input type="text" id="destProjectId" placeholder="Masukkan projectId" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destStorageBucket">storageBucket</label>
-                            <input type="text" id="destStorageBucket" placeholder="project-id.appspot.com" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destMessagingSenderId">messagingSenderId</label>
-                            <input type="text" id="destMessagingSenderId" placeholder="Masukkan messagingSenderId" />
-                        </div>
-                        <div class="form-group">
-                            <label for="destAppId">appId</label>
-                            <input type="text" id="destAppId" placeholder="1:xxx:web:xxx" />
-                        </div>
+                        <div class="form-group"><label for="destApiKey">apiKey</label><input type="text" id="destApiKey" placeholder="Masukkan apiKey" /></div>
+                        <div class="form-group"><label for="destAuthDomain">authDomain</label><input type="text" id="destAuthDomain" placeholder="Masukkan authDomain" /></div>
+                        <div class="form-group"><label for="destDatabaseURL">databaseURL</label><input type="text" id="destDatabaseURL" placeholder="https://project-id.firebaseio.com" /></div>
+                        <div class="form-group"><label for="destProjectId">projectId</label><input type="text" id="destProjectId" placeholder="Masukkan projectId" /></div>
+                        <div class="form-group"><label for="destStorageBucket">storageBucket</label><input type="text" id="destStorageBucket" placeholder="project-id.appspot.com" /></div>
+                        <div class="form-group"><label for="destMessagingSenderId">messagingSenderId</label><input type="text" id="destMessagingSenderId" placeholder="Masukkan messagingSenderId" /></div>
+                        <div class="form-group"><label for="destAppId">appId</label><input type="text" id="destAppId" placeholder="1:xxx:web:xxx" /></div>
                         <button class="btn-test" id="testDestBtn">🔍 Test Connection</button>
                     </div>
 
                     <div class="connection-info" id="destConnectionInfo" style="display:none;">
-                        <div class="info-row">
-                            <span class="info-label">Status:</span>
-                            <span class="info-value success">✅ Connected</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Project:</span>
-                            <span class="info-value" id="destProjectName">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Database URL:</span>
-                            <span class="info-value" id="destDbUrl">-</span>
-                        </div>
+                        <div class="info-row"><span class="info-label">Status:</span><span class="info-value success">✅ Connected</span></div>
+                        <div class="info-row"><span class="info-label">Project:</span><span class="info-value" id="destProjectName">-</span></div>
+                        <div class="info-row"><span class="info-label">Database URL:</span><span class="info-value" id="destDbUrl">-</span></div>
                     </div>
                 </section>
             </div>
 
-            <section class="options-card">
+            <!-- Node browser -->
+            <section class="nodes-card" id="nodesCard" style="display:none;">
+                <div class="card-header">
+                    <h3>📂 Struktur Data Source (pilih yang mau dipindah)</h3>
+                    <button class="btn-secondary" id="loadStructureBtn">🔄 Muat Ulang Struktur</button>
+                </div>
+                <div class="nodes-toolbar">
+                    <button class="btn-mini" id="selectAllBtn">☑️ Pilih Semua</button>
+                    <button class="btn-mini" id="selectNoneBtn">⬜ Kosongkan</button>
+                    <span class="hint" id="nodesHint"></span>
+                </div>
+                <div class="nodes-list" id="nodesList">
+                    <div class="node-empty-hint">Klik "Test Connection" di source lalu struktur akan otomatis dimuat.</div>
+                </div>
+            </section>
+
+            <!-- Mode -->
+            <section class="mode-card" id="modeCard" style="display:none;">
+                <h3>🔀 Mode Migrasi</h3>
+                <div class="mode-grid">
+                    <label class="mode-item selected" id="modeCopyLabel">
+                        <input type="radio" name="migrationMode" id="modeCopy" value="copy" checked />
+                        <div>
+                            <div class="mode-title">🔄 Salin (Copy)</div>
+                            <div class="mode-desc">Data digandakan ke destination, data di source tetap utuh & aman.</div>
+                        </div>
+                    </label>
+                    <label class="mode-item" id="modeMoveLabel">
+                        <input type="radio" name="migrationMode" id="modeMove" value="move" />
+                        <div>
+                            <div class="mode-title">✂️ Pindahkan (Move)</div>
+                            <div class="mode-desc">Setelah berhasil ditulis & terverifikasi di destination, node yang sama akan DIHAPUS dari source. Tidak bisa dibatalkan.</div>
+                        </div>
+                    </label>
+                </div>
+            </section>
+
+            <section class="options-card" id="optionsCard" style="display:none;">
                 <h3>⚙️ Migration Options</h3>
                 <div class="options-grid">
-                    <label class="option-item">
-                        <input type="checkbox" id="optOverwrite" checked />
-                        Overwrite Destination
-                    </label>
-                    <label class="option-item">
+                    <label class="option-item" id="optClearDestLabel">
                         <input type="checkbox" id="optClearDest" checked />
-                        Clear Destination Before Migration
+                        Hapus node tujuan dulu sebelum ditulis
                     </label>
-                    <label class="option-item">
-                        <input type="checkbox" id="optVerify" checked />
-                        Verify Data After Migration
+                    <label class="option-item disabled" id="optVerifyLabel">
+                        <input type="checkbox" id="optVerify" checked disabled />
+                        Verifikasi data setelah ditulis (wajib untuk mode Pindahkan)
                     </label>
                     <label class="option-item">
                         <input type="checkbox" id="optStopOnError" />
-                        Stop On Error
+                        Hentikan jika ada error
                     </label>
                 </div>
             </section>
@@ -626,14 +382,13 @@
             <section class="progress-card" id="progressSection" style="display:none;">
                 <h3>📊 Progress</h3>
                 <div class="progress-container">
-                    <div class="progress-bar-track">
-                        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
-                    </div>
+                    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
                     <div class="progress-info">
                         <span class="progress-percentage" id="progressPercentage">0%</span>
                         <span class="progress-status" id="progressStatus">Initializing...</span>
                     </div>
                 </div>
+                <div class="node-status-list" id="nodeStatusList"></div>
             </section>
 
             <section class="logs-card">
@@ -649,26 +404,12 @@
             <section class="summary-card" id="summarySection" style="display:none;">
                 <h3>📈 Migration Summary</h3>
                 <div class="summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-label">Status</span>
-                        <span class="summary-value" id="summaryStatus">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Migration Time</span>
-                        <span class="summary-value" id="summaryTime">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Total Root Nodes</span>
-                        <span class="summary-value" id="summaryNodes">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Estimated Data Size</span>
-                        <span class="summary-value" id="summarySize">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">Verification</span>
-                        <span class="summary-value" id="summaryVerification">-</span>
-                    </div>
+                    <div class="summary-item"><span class="summary-label">Status</span><span class="summary-value" id="summaryStatus">-</span></div>
+                    <div class="summary-item"><span class="summary-label">Migration Time</span><span class="summary-value" id="summaryTime">-</span></div>
+                    <div class="summary-item"><span class="summary-label">Node Dipilih</span><span class="summary-value" id="summaryNodes">-</span></div>
+                    <div class="summary-item"><span class="summary-label">Berhasil / Gagal</span><span class="summary-value" id="summaryOkFail">-</span></div>
+                    <div class="summary-item"><span class="summary-label">Estimated Data Size</span><span class="summary-value" id="summarySize">-</span></div>
+                    <div class="summary-item"><span class="summary-label">Mode</span><span class="summary-value" id="summaryMode">-</span></div>
                 </div>
             </section>
         </main>
@@ -685,7 +426,7 @@
 
     <script type="module">
         import { initializeApp } from 'firebase/app';
-        import { getDatabase, ref, get, set, update, remove } from 'firebase/database';
+        import { getDatabase, ref, get, set, remove } from 'firebase/database';
 
         // ============ LOGGER ============
         const logger = {
@@ -694,9 +435,7 @@
             error: (msg) => addLog('error', msg),
             warning: (msg) => addLog('warning', msg),
             progress: (msg) => addLog('progress', msg),
-            clear: () => {
-                document.getElementById('logsTerminal').innerHTML = '<div class="log-entry info">[INFO] Logs cleared</div>';
-            }
+            clear: () => { document.getElementById('logsTerminal').innerHTML = '<div class="log-entry info">[INFO] Logs cleared</div>'; }
         };
 
         function addLog(level, message) {
@@ -716,6 +455,7 @@
                 document.getElementById('progressFill').style.width = '0%';
                 document.getElementById('progressPercentage').textContent = '0%';
                 document.getElementById('progressStatus').textContent = 'Starting...';
+                document.getElementById('nodeStatusList').innerHTML = '';
             },
             update: (pct, status) => {
                 document.getElementById('progressFill').style.width = pct + '%';
@@ -729,43 +469,85 @@
             }
         };
 
+        function setNodeRowStatus(nodeKey, state, text) {
+            let row = document.getElementById('nodestatus-' + nodeKey);
+            if (!row) {
+                row = document.createElement('div');
+                row.id = 'nodestatus-' + nodeKey;
+                row.className = 'node-status-row';
+                document.getElementById('nodeStatusList').appendChild(row);
+            }
+            row.className = 'node-status-row ' + state;
+            row.innerHTML = `<span>${nodeKey}</span><span>${text}</span>`;
+        }
+
         // ============ FIREBASE ============
         function initFirebase(config) {
             try {
-                return initializeApp(config, 'app_' + Date.now());
+                return initializeApp(config, 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2));
             } catch (e) {
                 throw new Error('Failed to init Firebase: ' + e.message);
             }
         }
 
-        function getDB(app) {
-            return getDatabase(app);
-        }
-
         async function testConnection(config) {
             try {
                 const app = initFirebase(config);
-                const db = getDB(app);
-                const refs = ref(db, '.info/connected');
-                const snap = await get(refs);
-                if (snap.val() !== true) throw new Error('Not connected');
-                return { success: true, projectId: config.projectId, databaseURL: config.databaseURL, app };
+                const db = getDatabase(app);
+                const snap = await get(ref(db, '.info/connected'));
+                // .info/connected sometimes returns false right after connect even when read/write works,
+                // so we do a real fallback read on root to confirm actual access instead of trusting this alone.
+                if (snap.val() !== true) {
+                    await get(ref(db, '/'));
+                }
+                return { success: true, projectId: config.projectId, databaseURL: config.databaseURL, app, db };
             } catch (e) {
                 return { success: false, error: e.message };
             }
         }
 
-        async function readDatabase(db, onProgress) {
+        function normalizeDbUrl(url) {
+            return url.replace(/\/+$/, '');
+        }
+
+        // Shallow structure fetch via REST (avoids downloading full dataset just to list root keys)
+        async function fetchShallowKeys(databaseURL, path = '') {
+            const base = normalizeDbUrl(databaseURL);
+            const url = `${base}/${path}.json?shallow=true`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status} saat fetch struktur (cek rules database, mungkin butuh auth)`);
+            }
+            return await res.json();
+        }
+
+        async function loadRootStructure(databaseURL, dbForFallback) {
             try {
-                onProgress('Reading database...');
-                const rootRef = ref(db, '/');
-                const snap = await get(rootRef);
-                if (!snap.exists()) return { data: {}, nodeCount: 0, dataSize: 0 };
-                const data = snap.val();
-                const json = JSON.stringify(data);
-                return { data, nodeCount: countNodes(data), dataSize: json.length };
+                const shallow = await fetchShallowKeys(databaseURL);
+                if (!shallow) return [];
+                const keys = Object.keys(shallow);
+                const nodes = [];
+                for (const key of keys) {
+                    let type = 'unknown';
+                    try {
+                        const childShallow = await fetchShallowKeys(databaseURL, key);
+                        type = (childShallow && typeof childShallow === 'object') ? `object (${Object.keys(childShallow).length} child)` : 'leaf value';
+                    } catch (e) {
+                        type = 'unknown';
+                    }
+                    nodes.push({ key, type });
+                }
+                return nodes;
             } catch (e) {
-                throw new Error('Read failed: ' + e.message);
+                logger.warning('Struktur shallow gagal (' + e.message + '), fallback baca penuh dari source (bisa lambat kalau data besar)...');
+                const snap = await get(ref(dbForFallback, '/'));
+                if (!snap.exists()) return [];
+                const data = snap.val();
+                return Object.keys(data).map(key => {
+                    const val = data[key];
+                    const type = (val && typeof val === 'object') ? `object (${Object.keys(val).length} child)` : 'leaf value';
+                    return { key, type };
+                });
             }
         }
 
@@ -774,69 +556,31 @@
             let count = 0;
             for (const key in data) {
                 count++;
-                if (typeof data[key] === 'object' && data[key] !== null) {
-                    count += countNodes(data[key]);
-                }
+                if (typeof data[key] === 'object' && data[key] !== null) count += countNodes(data[key]);
             }
             return count;
-        }
-
-        async function writeDatabase(db, data, options, onProgress) {
-            try {
-                if (options.clearDestination) {
-                    onProgress('Clearing destination...');
-                    await remove(ref(db, '/'));
-                }
-                onProgress('Writing data...');
-                if (options.overwrite) {
-                    await set(ref(db, '/'), data);
-                } else {
-                    await update(ref(db, '/'), data);
-                }
-                let verified = true;
-                if (options.verify) {
-                    onProgress('Verifying...');
-                    verified = await verifyData(db, data);
-                }
-                return { success: true, verified };
-            } catch (e) {
-                throw new Error('Write failed: ' + e.message);
-            }
-        }
-
-        async function verifyData(db, sourceData) {
-            try {
-                const snap = await get(ref(db, '/'));
-                if (!snap.exists()) return false;
-                return JSON.stringify(sourceData) === JSON.stringify(snap.val());
-            } catch (e) {
-                return false;
-            }
         }
 
         function validateConfig(config) {
             const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
             const missing = required.filter(f => !config[f] || config[f].trim() === '');
-            if (missing.length > 0) {
-                return { valid: false, error: 'Missing: ' + missing.join(', ') };
-            }
+            if (missing.length > 0) return { valid: false, error: 'Missing: ' + missing.join(', ') };
             return { valid: true };
         }
 
-        // ============ CONNECTION ============
+        // ============ STATE ============
         let sourceConn = null;
         let destConn = null;
         let sourceConnected = false;
         let destConnected = false;
         let isMigrating = false;
+        let rootNodes = []; // [{key, type}]
 
+        // ============ CONNECTION HANDLERS ============
         async function testSource() {
             const config = getConfig('source');
             const val = validateConfig(config);
-            if (!val.valid) {
-                logger.error('Source: ' + val.error);
-                return;
-            }
+            if (!val.valid) { logger.error('Source: ' + val.error); return; }
             document.getElementById('testSourceBtn').disabled = true;
             document.getElementById('testSourceBtn').textContent = '⏳ Testing...';
             const result = await testConnection(config);
@@ -851,11 +595,14 @@
                 document.getElementById('sourceProjectName').textContent = result.projectId;
                 document.getElementById('sourceDbUrl').textContent = result.databaseURL;
                 logger.success('Source connected!');
+                document.getElementById('nodesCard').style.display = 'block';
+                await refreshStructure();
             } else {
                 sourceConnected = false;
                 document.getElementById('sourceStatus').textContent = '❌ Failed';
                 document.getElementById('sourceStatus').className = 'status-badge error';
                 document.getElementById('sourceConnectionInfo').style.display = 'none';
+                document.getElementById('nodesCard').style.display = 'none';
                 logger.error('Source: ' + result.error);
             }
             updateStartBtn();
@@ -864,10 +611,7 @@
         async function testDest() {
             const config = getConfig('dest');
             const val = validateConfig(config);
-            if (!val.valid) {
-                logger.error('Destination: ' + val.error);
-                return;
-            }
+            if (!val.valid) { logger.error('Destination: ' + val.error); return; }
             document.getElementById('testDestBtn').disabled = true;
             document.getElementById('testDestBtn').textContent = '⏳ Testing...';
             const result = await testConnection(config);
@@ -905,104 +649,226 @@
             };
         }
 
-        function updateStartBtn() {
-            const btn = document.getElementById('startMigrationBtn');
-            const enabled = sourceConnected && destConnected && !isMigrating;
-            if (enabled && sourceConn && destConn && sourceConn.databaseURL === destConn.databaseURL) {
-                btn.disabled = true;
-                btn.textContent = '⚠️ Same Database';
-                logger.warning('Source and destination are the same!');
+        // ============ STRUCTURE / NODE BROWSER ============
+        async function refreshStructure() {
+            const listEl = document.getElementById('nodesList');
+            listEl.innerHTML = '<div class="node-empty-hint">⏳ Memuat struktur data...</div>';
+            document.getElementById('nodesHint').textContent = '';
+            try {
+                rootNodes = await loadRootStructure(sourceConn.databaseURL, sourceConn.db);
+                renderNodesList();
+                if (rootNodes.length === 0) {
+                    logger.warning('Source database kosong, tidak ada node untuk dipindahkan.');
+                } else {
+                    logger.success(`Struktur dimuat: ${rootNodes.length} root node ditemukan.`);
+                }
+            } catch (e) {
+                listEl.innerHTML = '<div class="node-empty-hint">❌ Gagal memuat struktur: ' + e.message + '</div>';
+                logger.error('Gagal memuat struktur: ' + e.message);
+            }
+            document.getElementById('modeCard').style.display = rootNodes.length > 0 ? 'block' : 'none';
+            document.getElementById('optionsCard').style.display = rootNodes.length > 0 ? 'block' : 'none';
+            updateStartBtn();
+        }
+
+        function renderNodesList() {
+            const listEl = document.getElementById('nodesList');
+            if (rootNodes.length === 0) {
+                listEl.innerHTML = '<div class="node-empty-hint">Tidak ada data di source.</div>';
                 return;
             }
-            btn.disabled = !enabled;
-            btn.textContent = enabled ? '🚀 Start Migration' : '⏳ Connect Both Databases';
+            listEl.innerHTML = '';
+            rootNodes.forEach(node => {
+                const row = document.createElement('label');
+                row.className = 'node-row';
+                row.innerHTML = `
+                    <input type="checkbox" class="node-checkbox" data-key="${node.key}" checked />
+                    <span class="node-key">${node.key}</span>
+                    <span class="node-type">${node.type}</span>
+                `;
+                listEl.appendChild(row);
+            });
+            document.querySelectorAll('.node-checkbox').forEach(cb => cb.addEventListener('change', updateNodesHint));
+            updateNodesHint();
+        }
+
+        function updateNodesHint() {
+            const total = document.querySelectorAll('.node-checkbox').length;
+            const checked = document.querySelectorAll('.node-checkbox:checked').length;
+            document.getElementById('nodesHint').textContent = `${checked} dari ${total} node dipilih`;
+            updateStartBtn();
+        }
+
+        function getSelectedNodeKeys() {
+            return Array.from(document.querySelectorAll('.node-checkbox:checked')).map(cb => cb.dataset.key);
+        }
+
+        // ============ MODE ============
+        function getMode() {
+            return document.getElementById('modeMove').checked ? 'move' : 'copy';
+        }
+
+        function onModeChange() {
+            const mode = getMode();
+            document.getElementById('modeCopyLabel').classList.toggle('selected', mode === 'copy');
+            document.getElementById('modeMoveLabel').classList.toggle('selected', mode === 'move');
+            document.getElementById('modeMoveLabel').classList.toggle('danger-selected', mode === 'move');
+            const verifyCb = document.getElementById('optVerify');
+            const verifyLabel = document.getElementById('optVerifyLabel');
+            if (mode === 'move') {
+                verifyCb.checked = true;
+                verifyCb.disabled = true;
+                verifyLabel.classList.remove('disabled');
+            } else {
+                verifyCb.disabled = false;
+                verifyLabel.classList.remove('disabled');
+            }
+            updateStartBtn();
+        }
+
+        // ============ START BUTTON STATE ============
+        function updateStartBtn() {
+            const btn = document.getElementById('startMigrationBtn');
+            const selected = getSelectedNodeKeys().length;
+            const baseReady = sourceConnected && destConnected && !isMigrating && selected > 0;
+
+            if (baseReady && sourceConn.databaseURL === destConn.databaseURL) {
+                btn.disabled = true;
+                btn.textContent = '⚠️ Source & Destination Sama';
+                btn.classList.remove('danger');
+                return;
+            }
+
+            btn.disabled = !baseReady;
+            const mode = getMode();
+            if (!baseReady) {
+                btn.textContent = !sourceConnected || !destConnected ? '⏳ Connect Both Databases' : '☑️ Pilih Minimal 1 Node';
+                btn.classList.remove('danger');
+                return;
+            }
+            if (mode === 'move') {
+                btn.textContent = `✂️ Pindahkan ${selected} Node`;
+                btn.classList.add('danger');
+            } else {
+                btn.textContent = `🚀 Salin ${selected} Node`;
+                btn.classList.remove('danger');
+            }
         }
 
         // ============ MIGRATION ============
         async function startMigration() {
             if (isMigrating) return;
-            if (!sourceConnected || !destConnected) {
-                logger.error('Connect both databases first!');
-                return;
-            }
-            if (sourceConn.databaseURL === destConn.databaseURL) {
-                logger.error('Source and destination cannot be the same!');
-                return;
-            }
+            if (!sourceConnected || !destConnected) { logger.error('Connect both databases first!'); return; }
+            if (sourceConn.databaseURL === destConn.databaseURL) { logger.error('Source dan destination tidak boleh sama!'); return; }
 
-            isMigrating = true;
-            document.getElementById('startMigrationBtn').disabled = true;
-            document.getElementById('startMigrationBtn').textContent = '⏳ Migrating...';
-            document.getElementById('summarySection').style.display = 'none';
-            progress.start();
+            const selectedKeys = getSelectedNodeKeys();
+            if (selectedKeys.length === 0) { logger.error('Pilih minimal satu node dulu!'); return; }
+
+            const mode = getMode();
+            if (mode === 'move') {
+                const confirmed = window.confirm(
+                    `Yakin mau PINDAHKAN ${selectedKeys.length} node?\n\nSetelah ditulis & terverifikasi di destination, data node ini akan DIHAPUS dari source. Aksi ini tidak bisa dibatalkan.`
+                );
+                if (!confirmed) { logger.warning('Migrasi dibatalkan oleh user.'); return; }
+            }
 
             const options = {
-                overwrite: document.getElementById('optOverwrite').checked,
                 clearDestination: document.getElementById('optClearDest').checked,
                 verify: document.getElementById('optVerify').checked,
                 stopOnError: document.getElementById('optStopOnError').checked,
             };
 
+            isMigrating = true;
+            document.getElementById('startMigrationBtn').disabled = true;
+            document.getElementById('summarySection').style.display = 'none';
+            progress.start();
+
             const startTime = Date.now();
+            let totalSize = 0;
+            let okCount = 0;
+            let failCount = 0;
 
-            try {
-                logger.info('=== Starting Migration ===');
-                progress.update(5, 'Initializing...');
+            logger.info(`=== Mulai Migrasi (mode: ${mode === 'move' ? 'Pindahkan' : 'Salin'}) — ${selectedKeys.length} node ===`);
 
-                const sourceDb = getDatabase(sourceConn.app);
-                const destDb = getDatabase(destConn.app);
+            for (let i = 0; i < selectedKeys.length; i++) {
+                const key = selectedKeys[i];
+                const pctBase = (i / selectedKeys.length) * 100;
+                progress.update(pctBase, `Memproses node: ${key}`);
+                setNodeRowStatus(key, 'running', '⏳ membaca...');
 
-                progress.update(10, 'Reading source database...');
-                const { data, nodeCount, dataSize } = await readDatabase(sourceDb, (status) => {
-                    progress.update(30, status);
-                    logger.progress(status);
-                });
+                try {
+                    const snap = await get(ref(sourceConn.db, key));
+                    if (!snap.exists()) {
+                        setNodeRowStatus(key, 'fail', '⚠️ kosong, dilewati');
+                        logger.warning(`Node "${key}" kosong di source, dilewati.`);
+                        continue;
+                    }
+                    const data = snap.val();
+                    totalSize += JSON.stringify(data).length;
 
-                if (Object.keys(data).length === 0) {
-                    throw new Error('Source database is empty!');
+                    setNodeRowStatus(key, 'running', '✍️ menulis ke destination...');
+                    if (options.clearDestination) {
+                        await remove(ref(destConn.db, key));
+                    }
+                    await set(ref(destConn.db, key), data);
+
+                    let verified = true;
+                    if (options.verify) {
+                        setNodeRowStatus(key, 'running', '🔎 verifikasi...');
+                        const destSnap = await get(ref(destConn.db, key));
+                        verified = destSnap.exists() && JSON.stringify(destSnap.val()) === JSON.stringify(data);
+                    }
+
+                    if (!verified) {
+                        setNodeRowStatus(key, 'fail', '❌ verifikasi gagal');
+                        logger.error(`Node "${key}" gagal diverifikasi, TIDAK dihapus dari source.`);
+                        failCount++;
+                        if (options.stopOnError) { logger.error('Migrasi dihentikan (Stop On Error aktif).'); break; }
+                        continue;
+                    }
+
+                    if (mode === 'move') {
+                        setNodeRowStatus(key, 'running', '🗑️ menghapus dari source...');
+                        await remove(ref(sourceConn.db, key));
+                        setNodeRowStatus(key, 'ok', '✅ dipindahkan');
+                        logger.success(`Node "${key}" berhasil dipindahkan.`);
+                    } else {
+                        setNodeRowStatus(key, 'ok', '✅ disalin');
+                        logger.success(`Node "${key}" berhasil disalin.`);
+                    }
+                    okCount++;
+
+                } catch (e) {
+                    setNodeRowStatus(key, 'fail', '❌ error');
+                    logger.error(`Node "${key}" gagal: ${e.message}`);
+                    failCount++;
+                    if (options.stopOnError) { logger.error('Migrasi dihentikan (Stop On Error aktif).'); break; }
                 }
 
-                logger.info(`Read ${nodeCount} nodes, ${formatBytes(dataSize)}`);
-                progress.update(50, `Read ${nodeCount} nodes`);
+                progress.update(((i + 1) / selectedKeys.length) * 100, `${i + 1}/${selectedKeys.length} node diproses`);
+            }
 
-                progress.update(60, 'Writing to destination...');
-                const result = await writeDatabase(destDb, data, options, (status) => {
-                    const pct = status.includes('Verifying') ? 80 : 70;
-                    progress.update(pct, status);
-                    logger.progress(status);
-                });
+            const duration = Date.now() - startTime;
+            const success = failCount === 0;
+            progress.complete(success ? 'Selesai!' : 'Selesai dengan error');
+            logger.info(success ? '=== Migrasi selesai tanpa error ===' : `=== Migrasi selesai, ${failCount} node gagal ===`);
 
-                const duration = Date.now() - startTime;
-                logger.success('Migration completed successfully!');
-                progress.update(100, 'Completed!');
+            showSummary({
+                status: success ? 'Success' : 'Partial/Failed',
+                time: formatDuration(duration),
+                nodes: selectedKeys.length,
+                okFail: `${okCount} ok / ${failCount} gagal`,
+                size: formatBytes(totalSize),
+                mode: mode === 'move' ? 'Pindahkan' : 'Salin',
+                success
+            });
 
-                const summary = {
-                    status: 'Success',
-                    time: formatDuration(duration),
-                    nodes: nodeCount,
-                    size: formatBytes(dataSize),
-                    verification: result.verified ? '✅ Verified' : '⚠️ Not Verified',
-                    success: true
-                };
-                showSummary(summary);
-
-            } catch (error) {
-                logger.error('Migration failed: ' + error.message);
-                progress.complete('Failed');
-                const summary = {
-                    status: 'Failed',
-                    time: formatDuration(Date.now() - startTime),
-                    nodes: 0,
-                    size: '0 B',
-                    verification: '❌ Failed',
-                    success: false
-                };
-                showSummary(summary);
+            // refresh structure kalau move (source berubah)
+            if (mode === 'move') {
+                await refreshStructure();
             }
 
             isMigrating = false;
-            document.getElementById('startMigrationBtn').disabled = false;
-            document.getElementById('startMigrationBtn').textContent = '🚀 Start Migration';
             updateStartBtn();
         }
 
@@ -1012,9 +878,10 @@
             document.getElementById('summaryStatus').className = 'summary-value ' + (summary.success ? 'success' : 'error');
             document.getElementById('summaryTime').textContent = summary.time;
             document.getElementById('summaryNodes').textContent = summary.nodes;
+            document.getElementById('summaryOkFail').textContent = summary.okFail;
+            document.getElementById('summaryOkFail').className = 'summary-value ' + (summary.success ? 'success' : 'error');
             document.getElementById('summarySize').textContent = summary.size;
-            document.getElementById('summaryVerification').textContent = summary.verification;
-            document.getElementById('summaryVerification').className = 'summary-value ' + (summary.success ? 'success' : 'error');
+            document.getElementById('summaryMode').textContent = summary.mode;
         }
 
         function formatBytes(bytes) {
@@ -1037,12 +904,23 @@
         // ============ EVENT LISTENERS ============
         document.getElementById('testSourceBtn').addEventListener('click', testSource);
         document.getElementById('testDestBtn').addEventListener('click', testDest);
+        document.getElementById('loadStructureBtn').addEventListener('click', refreshStructure);
         document.getElementById('startMigrationBtn').addEventListener('click', startMigration);
         document.getElementById('clearLogsBtn').addEventListener('click', () => logger.clear());
+        document.getElementById('selectAllBtn').addEventListener('click', () => {
+            document.querySelectorAll('.node-checkbox').forEach(cb => cb.checked = true);
+            updateNodesHint();
+        });
+        document.getElementById('selectNoneBtn').addEventListener('click', () => {
+            document.querySelectorAll('.node-checkbox').forEach(cb => cb.checked = false);
+            updateNodesHint();
+        });
+        document.getElementById('modeCopy').addEventListener('change', onModeChange);
+        document.getElementById('modeMove').addEventListener('change', onModeChange);
 
-        logger.info('🔥 Firebase Migration Tool Ready!');
+        logger.info('🔥 Firebase Migration Tool Ready! Connect source & destination dulu ya.');
         document.getElementById('startMigrationBtn').disabled = true;
         document.getElementById('startMigrationBtn').textContent = '⏳ Connect Both Databases';
     </script>
 </body>
-    </html>
+</html>
