@@ -27,43 +27,47 @@
                         <span class="status-badge" id="sourceStatus">Not Connected</span>
                     </div>
                     
-                    <!-- Quick Paste Config -->
-                    <div class="paste-section">
-                        <button class="btn-paste-config" id="pasteSourceBtn">📋 Paste Firebase Config</button>
-                        <textarea class="config-textarea" id="sourceConfigTextarea" placeholder="Paste your firebaseConfig here..." style="display:none;"></textarea>
+                    <!-- Textarea buat paste -->
+                    <div class="paste-area">
+                        <label class="paste-label">📋 Paste Firebase Config Here (Auto Parse)</label>
+                        <textarea class="paste-textarea" id="sourceConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Nanti otomatis ngisi form dibawahnya&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://project.firebaseio.com&quot;,&#10;  projectId: &quot;project&quot;,&#10;  storageBucket: &quot;project.appspot.com&quot;,&#10;  messagingSenderId: &quot;123456&quot;,&#10;  appId: &quot;1:123:web:abc&quot;&#10;};"></textarea>
                     </div>
                     
+                    <div class="divider"></div>
+                    
+                    <!-- Form otomatis terisi -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="sourceApiKey">apiKey</label>
-                            <input type="text" id="sourceApiKey" placeholder="Masukkan apiKey" />
+                            <input type="text" id="sourceApiKey" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceAuthDomain">authDomain</label>
-                            <input type="text" id="sourceAuthDomain" placeholder="Masukkan authDomain" />
+                            <input type="text" id="sourceAuthDomain" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceDatabaseURL">databaseURL</label>
-                            <input type="text" id="sourceDatabaseURL" placeholder="https://project-id.firebaseio.com" />
+                            <input type="text" id="sourceDatabaseURL" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceProjectId">projectId</label>
-                            <input type="text" id="sourceProjectId" placeholder="Masukkan projectId" />
+                            <input type="text" id="sourceProjectId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceStorageBucket">storageBucket</label>
-                            <input type="text" id="sourceStorageBucket" placeholder="project-id.appspot.com" />
+                            <input type="text" id="sourceStorageBucket" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceMessagingSenderId">messagingSenderId</label>
-                            <input type="text" id="sourceMessagingSenderId" placeholder="Masukkan messagingSenderId" />
+                            <input type="text" id="sourceMessagingSenderId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="sourceAppId">appId</label>
-                            <input type="text" id="sourceAppId" placeholder="1:xxx:web:xxx" />
+                            <input type="text" id="sourceAppId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <button class="btn-test" id="testSourceBtn">🔍 Test Connection</button>
                     </div>
+                    
                     <div class="connection-info" id="sourceConnectionInfo" style="display:none;">
                         <div class="info-row">
                             <span class="info-label">Status:</span>
@@ -87,43 +91,47 @@
                         <span class="status-badge" id="destStatus">Not Connected</span>
                     </div>
                     
-                    <!-- Quick Paste Config -->
-                    <div class="paste-section">
-                        <button class="btn-paste-config" id="pasteDestBtn">📋 Paste Firebase Config</button>
-                        <textarea class="config-textarea" id="destConfigTextarea" placeholder="Paste your firebaseConfig here..." style="display:none;"></textarea>
+                    <!-- Textarea buat paste -->
+                    <div class="paste-area">
+                        <label class="paste-label">📋 Paste Firebase Config Here (Auto Parse)</label>
+                        <textarea class="paste-textarea" id="destConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Nanti otomatis ngisi form dibawahnya"></textarea>
                     </div>
                     
+                    <div class="divider"></div>
+                    
+                    <!-- Form otomatis terisi -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="destApiKey">apiKey</label>
-                            <input type="text" id="destApiKey" placeholder="Masukkan apiKey" />
+                            <input type="text" id="destApiKey" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destAuthDomain">authDomain</label>
-                            <input type="text" id="destAuthDomain" placeholder="Masukkan authDomain" />
+                            <input type="text" id="destAuthDomain" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destDatabaseURL">databaseURL</label>
-                            <input type="text" id="destDatabaseURL" placeholder="https://project-id.firebaseio.com" />
+                            <input type="text" id="destDatabaseURL" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destProjectId">projectId</label>
-                            <input type="text" id="destProjectId" placeholder="Masukkan projectId" />
+                            <input type="text" id="destProjectId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destStorageBucket">storageBucket</label>
-                            <input type="text" id="destStorageBucket" placeholder="project-id.appspot.com" />
+                            <input type="text" id="destStorageBucket" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destMessagingSenderId">messagingSenderId</label>
-                            <input type="text" id="destMessagingSenderId" placeholder="Masukkan messagingSenderId" />
+                            <input type="text" id="destMessagingSenderId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <div class="form-group">
                             <label for="destAppId">appId</label>
-                            <input type="text" id="destAppId" placeholder="1:xxx:web:xxx" />
+                            <input type="text" id="destAppId" placeholder="Akan terisi otomatis" readonly />
                         </div>
                         <button class="btn-test" id="testDestBtn">🔍 Test Connection</button>
                     </div>
+                    
                     <div class="connection-info" id="destConnectionInfo" style="display:none;">
                         <div class="info-row">
                             <span class="info-label">Status:</span>
@@ -236,4 +244,4 @@
     <!-- Main Application Script -->
     <script type="module" src="js/ui.js"></script>
 </body>
-                                </html>
+</html>
