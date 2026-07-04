@@ -58,33 +58,66 @@ let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
 
-// Parse Firebase Config
+// Parse Firebase Config - IMPROVED
 function parseFirebaseConfig(text) {
     try {
         let configText = text;
         
-        // Cari const firebaseConfig = {...}
-        const match1 = text.match(/const\s+firebaseConfig\s*=\s*({[\s\S]*?});/);
-        if (match1) configText = match1[1];
+        // STRATEGY 1: Cari const firebaseConfig = {...}
+        let match = text.match(/const\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
+        if (match) {
+            configText = match[1];
+        }
         
-        // Cari const config = {...}
-        const match2 = text.match(/const\s+config\s*=\s*({[\s\S]*?});/);
-        if (match2 && !match1) configText = match2[1];
+        // STRATEGY 2: Cari const config = {...}
+        if (!match) {
+            match = text.match(/const\s+config\s*=\s*(\{[\s\S]*?\});/);
+            if (match) configText = match[1];
+        }
         
-        // Cari object {...} yang ada apiKey
-        const match3 = text.match(/({[\s\S]*?(?:apiKey|authDomain|databaseURL|projectId)[\s\S]*?})/);
-        if (match3 && !match1 && !match2) configText = match3[1];
+        // STRATEGY 3: Cari var firebaseConfig = {...}
+        if (!match) {
+            match = text.match(/var\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
+            if (match) configText = match[1];
+        }
         
-        // Bersihkan
-        const cleaned = configText
-            .replace(/\/\/.*$/gm, '')
-            .replace(/\s+/g, ' ')
-            .replace(/(\w+):/g, '"$1":')
-            .replace(/'/g, '"')
+        // STRATEGY 4: Cari let firebaseConfig = {...}
+        if (!match) {
+            match = text.match(/let\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
+            if (match) configText = match[1];
+        }
+        
+        // STRATEGY 5: Cari object biasa yang ada apiKey
+        if (!match) {
+            match = text.match(/(\{[\s\S]*?apiKey[\s\S]*?\})/);
+            if (match) configText = match[1];
+        }
+        
+        // STRATEGY 6: Cari object biasa yang ada authDomain
+        if (!match) {
+            match = text.match(/(\{[\s\S]*?authDomain[\s\S]*?\})/);
+            if (match) configText = match[1];
+        }
+        
+        // STRATEGY 7: Cari object biasa yang ada databaseURL
+        if (!match) {
+            match = text.match(/(\{[\s\S]*?databaseURL[\s\S]*?\})/);
+            if (match) configText = match[1];
+        }
+        
+        // Bersihkan text
+        let cleaned = configText
+            .replace(/\/\/.*$/gm, '')           // Hapus comments //
+            .replace(/\/\*[\s\S]*?\*\//g, '')    // Hapus comments /* */
+            .replace(/\s+/g, ' ')                // Normalize whitespace
+            .replace(/(\w+):/g, '"$1":')         // Add quotes to keys
+            .replace(/'/g, '"')                  // Single quote to double quote
             .trim();
         
+        // Parse JSON
         const config = JSON.parse(cleaned);
         
+        // Validasi
         const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
         const missing = required.filter(f => !config[f]);
         
@@ -134,20 +167,34 @@ function fillForm(type, config) {
     }
     
     updateStartBtn();
-    logger.info(type + ' config parsed');
+    logger.info(type + ' config parsed successfully');
 }
 
 // Handle Input
 function handleInput(type, event) {
     const text = event.target.value;
-    if (text.trim().length === 0) return;
+    if (text.trim().length === 0) {
+        // Clear form if empty
+        const e = el[type];
+        ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(field => {
+            e[field].value = '';
+            e[field].classList.remove('filled');
+        });
+        return;
+    }
     
     try {
         const config = parseFirebaseConfig(text);
         fillForm(type, config);
-        logger.success(type + ' auto-parsed!');
+        logger.success(type + ' auto-parsed! ✅');
     } catch (error) {
-        // Silent fail
+        // Only log if there was previous data
+        const e = el[type];
+        const hasData = e.apiKey.value || e.authDomain.value || e.databaseURL.value;
+        if (hasData) {
+            logger.warning('Parse failed: ' + error.message);
+        }
+        // Don't clear on error, keep existing data
     }
 }
 
@@ -319,7 +366,7 @@ export function initializeUI() {
 // DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
-    logger.info('Migration tool ready - Paste config to auto-fill!');
+    logger.info('Migration tool ready - Paste FULL config to auto-fill!');
     el.startBtn.disabled = true;
     el.startBtn.textContent = '⏳ Connect Both Databases';
 });
