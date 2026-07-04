@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>DBverse Migrate | Multi‑provider database transfer</title>
+  <!-- Font & simple icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0c0f14;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      color: #e2e8f0;
+    }
+
+    .dashboard {
+      max-width: 1300px;
+      width: 100%;
+      background: rgba(18, 22, 28, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid #2d3748;
+      border-radius: 2.5rem;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #a5f3fc 0%, #60a5fa 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .sub {
+      color: #94a3b8;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .provider-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.8rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 850px) {
+      .provider-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #1a1f2b;
+      border: 1px solid #2d3748;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      transition: all 0.2s;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      background: #2d3748;
+      padding: 0.3rem 1rem;
+      border-radius: 3rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select, input {
+      width: 100%;
+      background: #0f131a;
+      border: 1px solid #334155;
+      border-radius: 0.9rem;
+      padding: 0.8rem 1rem;
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      margin-bottom: 0.9rem;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+    }
+
+    .row {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    button {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #f1f5f9;
+      padding: 0.7rem 1.2rem;
+      border-radius: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    button.primary {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.4);
+    }
+
+    button.primary:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .migrate-section {
+      background: #111827;
+      border-radius: 1.5rem;
+      padding: 1.8rem;
+      margin: 1.5rem 0;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 20px;
+      margin: 1.2rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #a78bfa);
+      border-radius: 20px;
+      transition: width 0.2s ease;
+    }
+
+    .terminal {
+      background: #0b0e14;
+      border: 1px solid #334155;
+      border-radius: 1.2rem;
+      padding: 1.2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      background: #0f172a;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    .value {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <h1>⚡ DBverse Migrate</h1>
+  <div class="sub"><span>🔥 real-time transfer</span> <span style="color:#60a5fa;">firebase · supabase</span></div>
+
+  <div class="provider-grid">
+    <!-- SOURCE -->
+    <div class="card">
+      <div class="card-header"><span style="font-size:1.4rem;">📤</span> <strong>Source Database</strong></div>
+      <select id="sourceProvider">
+        <option value="firebase">Firebase Realtime DB</option>
+        <option value="supabase">Supabase</option>
+      </select>
+      <div id="sourceConfig"></div>
+      <button id="testSourceBtn" style="margin-top:0.5rem;">🔌 Test Connection</button>
+      <span id="sourceStatus" style="font-size:0.8rem; margin-left:0.5rem;"></span>
+    </div>
+
+    <!-- DESTINATION -->
+    <div class="card">
+      <div class="card-header"><span style="font-size:1.4rem;">📥</span> <strong>Destination Database</strong></div>
+      <select id="destProvider">
+        <option value="supabase">Supabase</option>
+        <option value="firebase">Firebase Realtime DB</option>
+      </select>
+      <div id="destConfig"></div>
+      <button id="testDestBtn" style="margin-top:0.5rem;">🔌 Test Connection</button>
+      <span id="destStatus" style="font-size:0.8rem; margin-left:0.5rem;"></span>
+    </div>
+  </div>
+
+  <!-- Opsi Transfer -->
+  <div style="display: flex; flex-wrap: wrap; gap: 2rem; background: #1a1f2b; border-radius: 1.2rem; padding: 1rem 1.5rem; margin-bottom: 1rem;">
+    <label style="display:flex; align-items:center; gap:0.4rem;"><input type="checkbox" id="optOverwrite" checked> Overwrite destination</label>
+    <label style="display:flex; align-items:center; gap:0.4rem;"><input type="checkbox" id="optClear"> Clear destination first</label>
+    <label style="display:flex; align-items:center; gap:0.4rem;"><input type="checkbox" id="optValidate"> Validate structure</label>
+  </div>
+
+  <div class="migrate-section">
+    <button id="startMigration" class="primary" style="width:100%; font-size:1.2rem; padding:1rem;">🚀 Start Migration</button>
+    <div class="progress-track">
+      <div id="progressFill" class="progress-fill" style="width:0%"></div>
+    </div>
+    <div id="progressStatus" style="margin:0.5rem 0; font-weight:500;">⚪ Ready</div>
+    <div class="terminal" id="logContainer">[system] waiting for migration...</div>
+    
+    <div class="stats" id="statsPanel">
+      <div class="stat-item"><span class="label">Total Data</span><span class="value" id="statTotal">-</span></div>
+      <div class="stat-item"><span class="label">Nodes/Tables</span><span class="value" id="statNodes">-</span></div>
+      <div class="stat-item"><span class="label">Duration</span><span class="value" id="statTime">-</span></div>
+      <div class="stat-item"><span class="label">Status</span><span class="value" id="statStatus">⚪ idle</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Skrip modular dimuat sebagai modul -->
+<script type="module">
+  // ========== CORE MODULES ==========
+  import { MigrationEngine } from './core/migration.js';
+  import { Logger } from './core/logger.js';
+  import { ProgressManager } from './core/progress.js';
+  import { Validator } from './core/validator.js';
+  
+  // Provider registry (akan diisi dinamis)
+  const providerModules = {
+    firebase: await import('./providers/firebase.js'),
+    supabase: await import('./providers/supabase.js'),
+  };
+
+  // ---------- UI references ----------
+  const sourceSelect = document.getElementById('sourceProvider');
+  const destSelect = document.getElementById('destProvider');
+  const sourceConfigDiv = document.getElementById('sourceConfig');
+  const destConfigDiv = document.getElementById('destConfig');
+  const testSourceBtn = document.getElementById('testSourceBtn');
+  const testDestBtn = document.getElementById('testDestBtn');
+  const startBtn = document.getElementById('startMigration');
+  const progressFill = document.getElementById('progressFill');
+  const progressStatus = document.getElementById('progressStatus');
+  const logContainer = document.getElementById('logContainer');
+  
+  // Opsi
+  const optOverwrite = document.getElementById('optOverwrite');
+  const optClear = document.getElementById('optClear');
+  const optValidate = document.getElementById('optValidate');
+
+  // Status elemen
+  const sourceStatusSpan = document.getElementById('sourceStatus');
+  const destStatusSpan = document.getElementById('destStatus');
+
+  // Shared logger & progress
+  const logger = new Logger(logContainer);
+  const progress = new ProgressManager(progressFill, progressStatus);
+
+  // Render config form berdasarkan provider
+  function renderConfig(container, providerKey) {
+    const mod = providerModules[providerKey];
+    if (!mod || !mod.configFields) return;
+    const fields = mod.configFields;
+    let html = '';
+    for (const field of fields) {
+      html += `<input type="${field.type || 'text'}" placeholder="${field.placeholder}" id="${field.id}" autocomplete="off" />`;
+    }
+    container.innerHTML = html;
+  }
+
+  // Baca nilai konfigurasi dari DOM
+  function readConfig(providerKey, container) {
+    const mod = providerModules[providerKey];
+    if (!mod) return {};
+    const inputs = container.querySelectorAll('input');
+    const config = {};
+    mod.configFields.forEach((field, idx) => {
+      if (inputs[idx]) config[field.key] = inputs[idx].value.trim();
+    });
+    return config;
+  }
+
+  // Inisialisasi tampilan
+  renderConfig(sourceConfigDiv, sourceSelect.value);
+  renderConfig(destConfigDiv, destSelect.value);
+
+  sourceSelect.addEventListener('change', () => renderConfig(sourceConfigDiv, sourceSelect.value));
+  destSelect.addEventListener('change', () => renderConfig(destConfigDiv, destSelect.value));
+
+  // Test connection helpers
+  async function testConnection(providerKey, container, statusSpan) {
+    statusSpan.textContent = '⏳';
+    const config = readConfig(providerKey, container);
+    const mod = providerModules[providerKey];
+    try {
+      const result = await mod.testConnection(config);
+      statusSpan.textContent = result ? '✅ connected' : '❌ failed';
+    } catch (e) {
+      statusSpan.textContent = '❌ error';
+      logger.log(`[test] ${e.message}`, 'error');
+    }
+  }
+
+  testSourceBtn.addEventListener('click', () => testConnection(sourceSelect.value, sourceConfigDiv, sourceStatusSpan));
+  testDestBtn.addEventListener('click', () => testConnection(destSelect.value, destConfigDiv, destStatusSpan));
+
+  // ---------- MIGRATION START ----------
+  startBtn.addEventListener('click', async () => {
+    const sourceProvider = sourceSelect.value;
+    const destProvider = destSelect.value;
+    const sourceConfig = readConfig(sourceProvider, sourceConfigDiv);
+    const destConfig = readConfig(destProvider, destConfigDiv);
+
+    // Validasi input dasar
+    const validation = Validator.validateConfigs(sourceProvider, sourceConfig, destProvider, destConfig);
+    if (!validation.valid) {
+      alert(`Validation error: ${validation.message}`);
+      return;
+    }
+
+    // Ambil modul provider
+    const sourceMod = providerModules[sourceProvider];
+    const destMod = providerModules[destProvider];
+
+    const options = {
+      overwrite: optOverwrite.checked,
+      clearDestination: optClear.checked,
+      validateStructure: optValidate.checked,
+    };
+
+    // Reset statistik
+    document.getElementById('statTotal').textContent = '-';
+    document.getElementById('statNodes').textContent = '-';
+    document.getElementById('statTime').textContent = '-';
+    document.getElementById('statStatus').textContent = '⚪ running';
+
+    logger.clear();
+    progress.reset();
+
+    const engine = new MigrationEngine(sourceMod, destMod, logger, progress);
+    
+    try {
+      const result = await engine.runMigration(sourceConfig, destConfig, options);
+      // Update statistik akhir
+      document.getElementById('statTotal').textContent = result.totalRecords ?? '?';
+      document.getElementById('statNodes').textContent = result.nodeCount ?? '?';
+      document.getElementById('statTime').textContent = result.duration ?? '?';
+      document.getElementById('statStatus').textContent = result.success ? '✅ success' : '❌ failed';
+      if (result.errors) {
+        document.getElementById('statStatus').textContent += ` (${result.errors} errors)`;
+      }
+    } catch (err) {
+      logger.log(`Fatal migration error: ${err.message}`, 'error');
+      document.getElementById('statStatus').textContent = '❌ fatal';
+    }
+  });
+
+  // Menangani error global agar tidak break
+  window.addEventListener('error', (e) => {
+    logger.log(`[runtime] ${e.message}`, 'error');
+  });
+</script>
+</body>
+  </html>
