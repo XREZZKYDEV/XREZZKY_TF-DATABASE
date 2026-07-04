@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <div class="header-content">
                 <h1>🔥 Firebase Database Migration</h1>
@@ -16,9 +15,7 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Database Configurations -->
             <div class="config-grid">
                 <!-- Source Database -->
                 <section class="config-card" id="sourceConfig">
@@ -27,15 +24,15 @@
                         <span class="status-badge" id="sourceStatus">Not Connected</span>
                     </div>
                     
-                    <!-- Textarea buat paste -->
+                    <!-- PASTE DI SINI -->
                     <div class="paste-area">
-                        <label class="paste-label">📋 Paste Firebase Config Here (Auto Parse)</label>
-                        <textarea class="paste-textarea" id="sourceConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Nanti otomatis ngisi form dibawahnya&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://project.firebaseio.com&quot;,&#10;  projectId: &quot;project&quot;,&#10;  storageBucket: &quot;project.appspot.com&quot;,&#10;  messagingSenderId: &quot;123456&quot;,&#10;  appId: &quot;1:123:web:abc&quot;&#10;};"></textarea>
+                        <label class="paste-label">📋 Paste Firebase Config Disini</label>
+                        <textarea class="paste-textarea" id="sourceConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://project.firebaseio.com&quot;,&#10;  projectId: &quot;project&quot;,&#10;  storageBucket: &quot;project.appspot.com&quot;,&#10;  messagingSenderId: &quot;123456&quot;,&#10;  appId: &quot;1:123:web:abc&quot;&#10;};&#10;&#10;Form di bawah otomatis terisi!"></textarea>
                     </div>
                     
                     <div class="divider"></div>
                     
-                    <!-- Form otomatis terisi -->
+                    <!-- FORM OTOMATIS TERISI -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="sourceApiKey">apiKey</label>
@@ -91,15 +88,15 @@
                         <span class="status-badge" id="destStatus">Not Connected</span>
                     </div>
                     
-                    <!-- Textarea buat paste -->
+                    <!-- PASTE DI SINI -->
                     <div class="paste-area">
-                        <label class="paste-label">📋 Paste Firebase Config Here (Auto Parse)</label>
-                        <textarea class="paste-textarea" id="destConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Nanti otomatis ngisi form dibawahnya"></textarea>
+                        <label class="paste-label">📋 Paste Firebase Config Disini</label>
+                        <textarea class="paste-textarea" id="destConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Form di bawah otomatis terisi!"></textarea>
                     </div>
                     
                     <div class="divider"></div>
                     
-                    <!-- Form otomatis terisi -->
+                    <!-- FORM OTOMATIS TERISI -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="destApiKey">apiKey</label>
@@ -231,7 +228,6 @@
         </main>
     </div>
 
-    <!-- Firebase SDK Import Map -->
     <script type="importmap">
         {
             "imports": {
@@ -241,7 +237,6 @@
         }
     </script>
     
-    <!-- Main Application Script -->
     <script type="module" src="js/ui.js"></script>
 </body>
-</html>
+    </html>
