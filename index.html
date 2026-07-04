@@ -24,15 +24,13 @@
                         <span class="status-badge" id="sourceStatus">Not Connected</span>
                     </div>
                     
-                    <!-- PASTE DI SINI -->
                     <div class="paste-area">
-                        <label class="paste-label">📋 Paste Firebase Config Disini</label>
-                        <textarea class="paste-textarea" id="sourceConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://project.firebaseio.com&quot;,&#10;  projectId: &quot;project&quot;,&#10;  storageBucket: &quot;project.appspot.com&quot;,&#10;  messagingSenderId: &quot;123456&quot;,&#10;  appId: &quot;1:123:web:abc&quot;&#10;};&#10;&#10;Form di bawah otomatis terisi!"></textarea>
+                        <label class="paste-label">📋 Paste Firebase Config Disini (Auto Parse)</label>
+                        <textarea class="paste-textarea" id="sourceConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  databaseURL: &quot;https://project.firebaseio.com&quot;,&#10;  projectId: &quot;project&quot;&#10;};"></textarea>
                     </div>
                     
                     <div class="divider"></div>
                     
-                    <!-- FORM OTOMATIS TERISI -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="sourceApiKey">apiKey</label>
@@ -88,15 +86,13 @@
                         <span class="status-badge" id="destStatus">Not Connected</span>
                     </div>
                     
-                    <!-- PASTE DI SINI -->
                     <div class="paste-area">
-                        <label class="paste-label">📋 Paste Firebase Config Disini</label>
-                        <textarea class="paste-textarea" id="destConfigInput" placeholder="Paste seluruh code Firebase config di sini...&#10;Form di bawah otomatis terisi!"></textarea>
+                        <label class="paste-label">📋 Paste Firebase Config Disini (Auto Parse)</label>
+                        <textarea class="paste-textarea" id="destConfigInput" placeholder="Paste seluruh code Firebase config di sini..."></textarea>
                     </div>
                     
                     <div class="divider"></div>
                     
-                    <!-- FORM OTOMATIS TERISI -->
                     <div class="config-form">
                         <div class="form-group">
                             <label for="destApiKey">apiKey</label>
@@ -146,7 +142,6 @@
                 </section>
             </div>
 
-            <!-- Migration Options -->
             <section class="options-card">
                 <h3>⚙️ Migration Options</h3>
                 <div class="options-grid">
@@ -169,12 +164,10 @@
                 </div>
             </section>
 
-            <!-- Action Button -->
             <div class="action-section">
                 <button class="btn-migrate" id="startMigrationBtn" disabled>🚀 Start Migration</button>
             </div>
 
-            <!-- Progress Section -->
             <section class="progress-card" id="progressSection" style="display:none;">
                 <h3>📊 Progress</h3>
                 <div class="progress-container">
@@ -188,7 +181,6 @@
                 </div>
             </section>
 
-            <!-- Logs Section -->
             <section class="logs-card">
                 <div class="logs-header">
                     <h3>📋 Logs</h3>
@@ -199,7 +191,6 @@
                 </div>
             </section>
 
-            <!-- Summary Section -->
             <section class="summary-card" id="summarySection" style="display:none;">
                 <h3>📈 Migration Summary</h3>
                 <div class="summary-grid" id="summaryContent">
