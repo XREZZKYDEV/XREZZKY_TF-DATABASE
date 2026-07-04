@@ -3,10 +3,8 @@ import { progress } from './progress.js';
 import { testSourceConnection, testDestConnection, areSameDatabase } from './connection.js';
 import { performMigration } from './migration.js';
 
-// DOM Elements
 const el = {
     source: {
-        input: document.getElementById('sourceConfigInput'),
         apiKey: document.getElementById('sourceApiKey'),
         authDomain: document.getElementById('sourceAuthDomain'),
         databaseURL: document.getElementById('sourceDatabaseURL'),
@@ -21,7 +19,6 @@ const el = {
         dbUrl: document.getElementById('sourceDbUrl'),
     },
     dest: {
-        input: document.getElementById('destConfigInput'),
         apiKey: document.getElementById('destApiKey'),
         authDomain: document.getElementById('destAuthDomain'),
         databaseURL: document.getElementById('destDatabaseURL'),
@@ -58,82 +55,17 @@ let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
 
-function parseFirebaseConfig(text) {
-    // Cari object yang berisi apiKey
-    const match = text.match(/\{[\s\S]*?apiKey[\s\S]*?\}/);
-    if (!match) {
-        throw new Error('Tidak ditemukan config object');
-    }
-    
-    let configText = match[0];
-    
-    // Bersihkan
-    configText = configText
-        .replace(/\/\/.*$/gm, '')
-        .replace(/\s+/g, ' ')
-        .replace(/(\w+):/g, '"$1":')
-        .replace(/'/g, '"')
-        .trim();
-    
-    const config = JSON.parse(configText);
-    
-    // Validasi
-    const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
-    const missing = required.filter(f => !config[f]);
-    if (missing.length > 0) {
-        throw new Error('Missing: ' + missing.join(', '));
-    }
-    
-    return config;
-}
-
-function fillForm(type, config) {
+function getConfig(type) {
     const e = el[type];
-    
-    e.apiKey.value = config.apiKey || '';
-    e.authDomain.value = config.authDomain || '';
-    e.databaseURL.value = config.databaseURL || '';
-    e.projectId.value = config.projectId || '';
-    e.storageBucket.value = config.storageBucket || '';
-    e.messagingSenderId.value = config.messagingSenderId || '';
-    e.appId.value = config.appId || '';
-    
-    // Highlight filled
-    ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(field => {
-        if (e[field].value) {
-            e[field].classList.add('filled');
-        } else {
-            e[field].classList.remove('filled');
-        }
-    });
-    
-    // Reset status
-    if (type === 'source') {
-        sourceConnected = false;
-        e.status.textContent = 'Not Connected';
-        e.status.className = 'status-badge';
-        e.info.style.display = 'none';
-    } else {
-        destConnected = false;
-        e.status.textContent = 'Not Connected';
-        e.status.className = 'status-badge';
-        e.info.style.display = 'none';
-    }
-    
-    updateStartBtn();
-    logger.success(type + ' config loaded!');
-}
-
-function handleInput(type, event) {
-    const text = event.target.value;
-    if (!text.trim()) return;
-    
-    try {
-        const config = parseFirebaseConfig(text);
-        fillForm(type, config);
-    } catch (error) {
-        // Silent
-    }
+    return {
+        apiKey: e.apiKey.value.trim(),
+        authDomain: e.authDomain.value.trim(),
+        databaseURL: e.databaseURL.value.trim(),
+        projectId: e.projectId.value.trim(),
+        storageBucket: e.storageBucket.value.trim(),
+        messagingSenderId: e.messagingSenderId.value.trim(),
+        appId: e.appId.value.trim(),
+    };
 }
 
 function updateStartBtn() {
@@ -148,19 +80,6 @@ function updateStartBtn() {
     
     btn.disabled = !enabled;
     btn.textContent = enabled ? '🚀 Start Migration' : '⏳ Connect Both Databases';
-}
-
-function getConfig(type) {
-    const e = el[type];
-    return {
-        apiKey: e.apiKey.value.trim(),
-        authDomain: e.authDomain.value.trim(),
-        databaseURL: e.databaseURL.value.trim(),
-        projectId: e.projectId.value.trim(),
-        storageBucket: e.storageBucket.value.trim(),
-        messagingSenderId: e.messagingSenderId.value.trim(),
-        appId: e.appId.value.trim(),
-    };
 }
 
 export const updateUI = {};
@@ -235,23 +154,11 @@ export function updateSummary(summary) {
 }
 
 export function initializeUI() {
-    // Source
-    el.source.input.addEventListener('input', (e) => handleInput('source', e));
-    el.source.input.addEventListener('paste', (e) => {
-        setTimeout(() => handleInput('source', e), 200);
-    });
-    
-    // Dest
-    el.dest.input.addEventListener('input', (e) => handleInput('dest', e));
-    el.dest.input.addEventListener('paste', (e) => {
-        setTimeout(() => handleInput('dest', e), 200);
-    });
-    
     // Test Source
     el.source.testBtn.addEventListener('click', async () => {
         const config = getConfig('source');
         if (!config.apiKey || !config.databaseURL) {
-            logger.error('Source config belum lengkap!');
+            logger.error('Isi semua field source dulu!');
             return;
         }
         el.source.testBtn.disabled = true;
@@ -267,7 +174,7 @@ export function initializeUI() {
     el.dest.testBtn.addEventListener('click', async () => {
         const config = getConfig('dest');
         if (!config.apiKey || !config.databaseURL) {
-            logger.error('Destination config belum lengkap!');
+            logger.error('Isi semua field destination dulu!');
             return;
         }
         el.dest.testBtn.disabled = true;
@@ -306,7 +213,7 @@ export function initializeUI() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
-    logger.info('🔥 Ready! Paste config to auto-fill');
+    logger.info('🔥 Migration tool ready!');
     el.startBtn.disabled = true;
     el.startBtn.textContent = '⏳ Connect Both Databases';
 });
