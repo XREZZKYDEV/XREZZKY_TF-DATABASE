@@ -21,6 +21,42 @@
 
         .app-container { max-width: 1400px; margin: 0 auto; }
 
+        /* ========== RULES ALERT BANNER ========== */
+        .rules-alert {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .rules-alert .icon { font-size: 28px; flex-shrink: 0; }
+        .rules-alert .content { flex: 1; }
+        .rules-alert .content h3 { color: #fbbf24; font-size: 16px; margin-bottom: 6px; }
+        .rules-alert .content p { color: #8892b0; font-size: 14px; line-height: 1.6; }
+        .rules-alert .content code {
+            background: #0d1326;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #4ade80;
+            display: inline-block;
+            margin: 4px 0;
+        }
+        .rules-alert .btn-close-alert {
+            background: none;
+            border: none;
+            color: #8892b0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .rules-alert .btn-close-alert:hover { color: #e8edf5; }
+
         .app-header {
             background: #121829;
             border: 1px solid #2a3a5c;
@@ -180,6 +216,17 @@
 
         .nodes-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
         .nodes-toolbar .hint { font-size: 12px; color: #8892b0; margin-left: auto; }
+        
+        .nodes-toolbar input[type="text"] {
+            background: #0d1326;
+            border: 1px solid #2a3a5c;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #e8edf5;
+            font-size: 13px;
+            min-width: 150px;
+        }
+        .nodes-toolbar input[type="text"]:focus { outline: none; border-color: #4a9eff; }
 
         .nodes-list {
             display: flex; flex-direction: column; gap: 6px;
@@ -190,10 +237,14 @@
             display: flex; align-items: center; gap: 10px;
             padding: 8px 10px; border-radius: 6px; background: #0d1326;
             font-family: 'Courier New', monospace; font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
+        .node-row:hover { background: #1a2240; }
         .node-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4a9eff; cursor: pointer; }
         .node-key { color: #e8edf5; font-weight: 600; flex: 1; }
         .node-type { color: #8892b0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #121829; border: 1px solid #2a3a5c; }
+        .node-count { color: #4a9eff; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #0d1326; }
         .node-empty-hint { color: #8892b0; font-size: 13px; padding: 20px; text-align: center; }
         .node-type.manual { color: #c084fc; border-color: #7c3aed; background: rgba(124,58,237,0.15); }
 
@@ -217,7 +268,20 @@
         .manual-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
         .manual-row .form-group { flex: 1; min-width: 160px; }
         .manual-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .manual-note { font-size: 12px; color: #8892b0; }
+        .paste-config-box {
+            background: #0d1326; border: 1px dashed #4a9eff33; border-radius: 8px;
+            padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .paste-config-box label {
+            font-size: 12px; color: #8892b0; font-weight: 600;
+        }
+        textarea.config-paste-input {
+            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px;
+            padding: 10px 12px; color: #e8edf5; font-size: 12px;
+            font-family: 'Courier New', monospace; min-height: 90px; resize: vertical; line-height: 1.5;
+        }
+        textarea.config-paste-input:focus { outline: none; border-color: #4a9eff; }
+        .paste-config-hint { font-size: 11px; color: #8892b0; }
 
         .action-section { display: flex; justify-content: center; padding: 12px 0; }
 
@@ -265,6 +329,51 @@
         .summary-value.success { color: #4ade80; }
         .summary-value.error { color: #f87171; }
 
+        /* ========== FOOTER COPYRIGHT ========== */
+        .app-footer {
+            margin-top: 40px;
+            padding: 24px 20px 16px;
+            text-align: center;
+            border-top: 1px solid #2a3a5c;
+            color: #8892b0;
+            font-size: 14px;
+        }
+        .app-footer .heart { color: #f87171; display: inline-block; animation: pulse 1.5s ease infinite; }
+        .app-footer .dev-name {
+            background: linear-gradient(135deg, #4a9eff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        .app-footer .version-text { color: #2a3a5c; font-size: 12px; margin-top: 4px; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* ========== IMPORT/EXPORT ========== */
+        .import-export-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             body { padding: 12px; }
             .app-header h1 { font-size: 22px; }
@@ -272,6 +381,8 @@
             .options-grid { grid-template-columns: 1fr; }
             .summary-grid { grid-template-columns: 1fr 1fr; }
             .btn-migrate { max-width: 100%; font-size: 16px; padding: 14px 20px; }
+            .rules-alert { padding: 12px 16px; }
+            .rules-alert .content code { font-size: 11px; }
         }
         @media (max-width: 480px) {
             .app-header h1 { font-size: 18px; }
@@ -283,10 +394,31 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- ========== RULES ALERT BANNER ========== -->
+        <div class="rules-alert" id="rulesAlert">
+            <div class="icon">⚠️</div>
+            <div class="content">
+                <h3>🔐 Aturan Firebase Rules (Sementara)</h3>
+                <p>
+                    Untuk migrasi, setel rules di <strong>Source</strong> dan <strong>Destination</strong> ke mode publik sementara:
+                    <br />
+                    <code>{
+  ".read": "auth != null || true",
+  ".write": "auth != null || true"
+}</code>
+                    <br />
+                    <span style="color: #f87171; font-size: 13px;">
+                        ⚠️ Jangan lupa kembalikan rules ke pengaturan semula setelah migrasi selesai!
+                    </span>
+                </p>
+            </div>
+            <button class="btn-close-alert" id="closeRulesAlert" title="Tutup">✕</button>
+        </div>
+
         <header class="app-header">
             <div class="header-content">
                 <h1>🔥 Firebase Database Migration</h1>
-                <span class="version">v2.0.0</span>
+                <span class="version">v2.2.0</span>
             </div>
         </header>
 
@@ -300,6 +432,12 @@
                     </div>
 
                     <div class="config-form">
+                        <div class="paste-config-box">
+                            <label>⚡ Paste Kode Config Firebase (auto-isi form di bawah)</label>
+                            <textarea class="config-paste-input" id="sourceConfigPaste" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...",&#10;  databaseURL: "...",&#10;  ...&#10;};'></textarea>
+                            <button class="btn-secondary" id="sourceParseConfigBtn" type="button">⚡ Auto-Isi dari Paste</button>
+                            <div class="paste-config-hint">Bisa paste kode lengkap dari Firebase Console (yang ada import, comment, dll), gak masalah.</div>
+                        </div>
                         <div class="form-group"><label for="sourceApiKey">apiKey</label><input type="text" id="sourceApiKey" placeholder="Masukkan apiKey" /></div>
                         <div class="form-group"><label for="sourceAuthDomain">authDomain</label><input type="text" id="sourceAuthDomain" placeholder="Masukkan authDomain" /></div>
                         <div class="form-group"><label for="sourceDatabaseURL">databaseURL</label><input type="text" id="sourceDatabaseURL" placeholder="https://project-id.firebaseio.com" /></div>
@@ -325,6 +463,12 @@
                     </div>
 
                     <div class="config-form">
+                        <div class="paste-config-box">
+                            <label>⚡ Paste Kode Config Firebase (auto-isi form di bawah)</label>
+                            <textarea class="config-paste-input" id="destConfigPaste" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...",&#10;  databaseURL: "...",&#10;  ...&#10;};'></textarea>
+                            <button class="btn-secondary" id="destParseConfigBtn" type="button">⚡ Auto-Isi dari Paste</button>
+                            <div class="paste-config-hint">Bisa paste kode lengkap dari Firebase Console (yang ada import, comment, dll), gak masalah.</div>
+                        </div>
                         <div class="form-group"><label for="destApiKey">apiKey</label><input type="text" id="destApiKey" placeholder="Masukkan apiKey" /></div>
                         <div class="form-group"><label for="destAuthDomain">authDomain</label><input type="text" id="destAuthDomain" placeholder="Masukkan authDomain" /></div>
                         <div class="form-group"><label for="destDatabaseURL">databaseURL</label><input type="text" id="destDatabaseURL" placeholder="https://project-id.firebaseio.com" /></div>
@@ -352,6 +496,7 @@
                 <div class="nodes-toolbar">
                     <button class="btn-mini" id="selectAllBtn">☑️ Pilih Semua</button>
                     <button class="btn-mini" id="selectNoneBtn">⬜ Kosongkan</button>
+                    <input type="text" id="nodeSearch" placeholder="🔍 Cari node..." />
                     <span class="hint" id="nodesHint"></span>
                 </div>
                 <div class="nodes-list" id="nodesList">
@@ -475,6 +620,15 @@
                 </div>
             </section>
         </main>
+
+        <!-- ========== FOOTER COPYRIGHT ========== -->
+        <footer class="app-footer">
+            <div>
+      <span class="heart"> </span> by 
+                <span class="dev-name">xrezzky dev</span>
+            </div>
+            <div class="version-text">Firebase Migration Tool v2.2.0</div>
+        </footer>
     </div>
 
     <script type="importmap">
@@ -552,19 +706,72 @@
             }
         }
 
+        function sanitizeDatabaseUrl(rawUrl) {
+            let url = rawUrl.replace(/[\u200B-\u200D\uFEFF]/g, '');
+            url = url.trim().replace(/\/+$/, '');
+            return url;
+        }
+
+        function validateDatabaseUrlFormat(url) {
+            const pattern = /^https:\/\/[a-z0-9-]+(-default-rtdb)?(\.[a-z0-9-]+)*\.(firebaseio\.com|firebasedatabase\.app)$/i;
+            return pattern.test(url);
+        }
+
         async function testConnection(config) {
+            const cleanUrl = sanitizeDatabaseUrl(config.databaseURL);
+            logger.info(`Cek databaseURL: "${cleanUrl}" (panjang: ${cleanUrl.length} karakter)`);
+            
+            if (!validateDatabaseUrlFormat(cleanUrl)) {
+                logger.warning(`Format databaseURL kelihatan gak biasa: "${cleanUrl}" — lanjut coba connect, tapi kalau gagal, ini kemungkinan besar penyebabnya.`);
+            }
+            
+            if (cleanUrl !== config.databaseURL) {
+                logger.warning('Ada karakter aneh/spasi/trailing-slash di databaseURL, udah dibersihin otomatis.');
+            }
+
+            const cleanConfig = { ...config, databaseURL: cleanUrl };
+
+            let app, db;
+            
             try {
-                const app = initFirebase(config);
-                const db = getDatabase(app);
-                const snap = await get(ref(db, '.info/connected'));
-                // .info/connected sometimes returns false right after connect even when read/write works,
-                // so we do a real fallback read on root to confirm actual access instead of trusting this alone.
-                if (snap.val() !== true) {
-                    await get(ref(db, '/'));
-                }
-                return { success: true, projectId: config.projectId, databaseURL: config.databaseURL, app, db };
+                app = initFirebase(cleanConfig);
+                logger.info('Firebase app initialized successfully');
             } catch (e) {
-                return { success: false, error: e.message };
+                return { success: false, error: 'Gagal initializeApp: ' + e.message };
+            }
+
+            try {
+                db = getDatabase(app, cleanUrl);
+                logger.info('Database instance created');
+            } catch (e) {
+                return { success: false, error: 'Gagal getDatabase (cek format databaseURL): ' + e.message };
+            }
+
+            try {
+                const snap = await get(ref(db, '/'));
+                logger.info('Root read successful');
+                
+                return { 
+                    success: true, 
+                    projectId: cleanConfig.projectId, 
+                    databaseURL: cleanUrl, 
+                    app, 
+                    db 
+                };
+            } catch (e) {
+                let errorMsg = `Gagal baca data`;
+                if (e.code) errorMsg += ` (${e.code})`;
+                if (e.message) errorMsg += `: ${e.message}`;
+                
+                if (e.message && e.message.includes('Permission denied')) {
+                    errorMsg += ' — Cek rules database! Setel ke publik sementara: { ".read": "auth != null || true", ".write": "auth != null || true" }';
+                }
+                
+                if (e.message && e.message.includes('Invalid token')) {
+                    errorMsg += ' — Hmm, kemungkinan ada karakter aneh di URL atau path. Coba cek databaseURL lagi.';
+                }
+                
+                return { success: false, error: errorMsg };
             }
         }
 
@@ -572,7 +779,6 @@
             return url.replace(/\/+$/, '');
         }
 
-        // Shallow structure fetch via REST (avoids downloading full dataset just to list root keys)
         async function fetchShallowKeys(databaseURL, path = '') {
             const base = normalizeDbUrl(databaseURL);
             const url = `${base}/${path}.json?shallow=true`;
@@ -591,13 +797,20 @@
                 const nodes = [];
                 for (const key of keys) {
                     let type = 'unknown';
+                    let count = 0;
                     try {
                         const childShallow = await fetchShallowKeys(databaseURL, key);
-                        type = (childShallow && typeof childShallow === 'object') ? `object (${Object.keys(childShallow).length} child)` : 'leaf value';
+                        if (childShallow && typeof childShallow === 'object') {
+                            const childKeys = Object.keys(childShallow);
+                            type = `object (${childKeys.length} child)`;
+                            count = childKeys.length;
+                        } else {
+                            type = 'leaf value';
+                        }
                     } catch (e) {
                         type = 'unknown';
                     }
-                    nodes.push({ key, type });
+                    nodes.push({ key, type, count });
                 }
                 return nodes;
             } catch (e) {
@@ -608,19 +821,9 @@
                 return Object.keys(data).map(key => {
                     const val = data[key];
                     const type = (val && typeof val === 'object') ? `object (${Object.keys(val).length} child)` : 'leaf value';
-                    return { key, type };
+                    return { key, type, count: 0 };
                 });
             }
-        }
-
-        function countNodes(data) {
-            if (!data || typeof data !== 'object') return 0;
-            let count = 0;
-            for (const key in data) {
-                count++;
-                if (typeof data[key] === 'object' && data[key] !== null) count += countNodes(data[key]);
-            }
-            return count;
         }
 
         function validateConfig(config) {
@@ -636,8 +839,8 @@
         let sourceConnected = false;
         let destConnected = false;
         let isMigrating = false;
-        let rootNodes = []; // [{key, type}] dari source (live)
-        let manualNodeData = {}; // { key: dataObject } hasil paste/ketik manual, override / tambahan
+        let rootNodes = [];
+        let manualNodeData = {};
 
         // ============ CONNECTION HANDLERS ============
         async function testSource() {
@@ -750,6 +953,7 @@
         function renderNodesList() {
             const listEl = document.getElementById('nodesList');
             const keys = getMergedNodeKeys();
+            const search = document.getElementById('nodeSearch').value.toLowerCase();
             const previouslyChecked = new Set(
                 Array.from(document.querySelectorAll('.node-checkbox:checked')).map(cb => cb.dataset.key)
             );
@@ -761,9 +965,17 @@
                 return;
             }
             listEl.innerHTML = '';
+            let visibleCount = 0;
             keys.forEach(key => {
                 const liveNode = rootNodes.find(n => n.key === key);
                 const isManual = Object.prototype.hasOwnProperty.call(manualNodeData, key);
+                
+                // Search filter
+                if (search && !key.toLowerCase().includes(search)) {
+                    return;
+                }
+                visibleCount++;
+                
                 let typeLabel;
                 let typeClass = 'node-type';
                 if (isManual && liveNode) { typeLabel = '📝 manual (override live)'; typeClass += ' manual'; }
@@ -777,10 +989,19 @@
                     <input type="checkbox" class="node-checkbox" data-key="${key}" ${shouldCheck ? 'checked' : ''} />
                     <span class="node-key">${key}</span>
                     <span class="${typeClass}">${typeLabel}</span>
+                    ${liveNode && liveNode.count > 0 ? `<span class="node-count">📊 ${liveNode.count} item</span>` : ''}
                     ${isManual ? `<button class="btn-mini remove-manual-btn" data-key="${key}" type="button">✖ hapus manual</button>` : ''}
                 `;
                 listEl.appendChild(row);
             });
+            
+            if (visibleCount === 0 && search) {
+                const empty = document.createElement('div');
+                empty.className = 'node-empty-hint';
+                empty.textContent = `🔍 Tidak ada node yang cocok dengan "${search}"`;
+                listEl.appendChild(empty);
+            }
+            
             document.querySelectorAll('.node-checkbox').forEach(cb => cb.addEventListener('change', updateNodesHint));
             document.querySelectorAll('.remove-manual-btn').forEach(btn => btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -802,6 +1023,55 @@
 
         function getSelectedNodeKeys() {
             return Array.from(document.querySelectorAll('.node-checkbox:checked')).map(cb => cb.dataset.key);
+        }
+
+        // ============ PARSE PASTE CONFIG FIREBASE ============
+        function parseFirebaseConfigSnippet(text) {
+            const fields = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId', 'measurementId'];
+            const result = {};
+            fields.forEach(field => {
+                const re = new RegExp(field + '\\s*:\\s*["\'\`]([^"\'\`]+)["\'\`]', 'i');
+                const m = text.match(re);
+                if (m) result[field] = m[1].trim();
+            });
+            return result;
+        }
+
+        function fillConfigForm(prefix, parsed) {
+            const map = {
+                apiKey: prefix + 'ApiKey',
+                authDomain: prefix + 'AuthDomain',
+                databaseURL: prefix + 'DatabaseURL',
+                projectId: prefix + 'ProjectId',
+                storageBucket: prefix + 'StorageBucket',
+                messagingSenderId: prefix + 'MessagingSenderId',
+                appId: prefix + 'AppId',
+            };
+            let filledCount = 0;
+            Object.keys(map).forEach(field => {
+                if (parsed[field]) {
+                    document.getElementById(map[field]).value = parsed[field];
+                    filledCount++;
+                }
+            });
+            return filledCount;
+        }
+
+        function handleParseConfig(prefix, textareaId) {
+            const raw = document.getElementById(textareaId).value;
+            if (!raw.trim()) { logger.error('Kolom paste config masih kosong.'); return; }
+            const parsed = parseFirebaseConfigSnippet(raw);
+            const filled = fillConfigForm(prefix, parsed);
+            const requiredFields = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
+            const missing = requiredFields.filter(f => !parsed[f]);
+            if (filled === 0) {
+                logger.error('Gak ketemu field apapun di paste-an itu. Pastiin formatnya kayak "apiKey: \\"...\\"" ada di dalamnya.');
+                return;
+            }
+            logger.success(`${filled} field ke-auto-isi dari paste (${prefix === 'source' ? 'Source' : 'Destination'}).`);
+            if (missing.length > 0) {
+                logger.warning('Field wajib belum ketemu, isi manual ya: ' + missing.join(', '));
+            }
         }
 
         // ============ MANUAL INPUT ============
@@ -956,7 +1226,10 @@
             const mode = getMode();
             if (mode === 'move') {
                 const confirmed = window.confirm(
-                    `Yakin mau PINDAHKAN ${selectedKeys.length} node?\n\nSetelah ditulis & terverifikasi di destination, data node ini akan DIHAPUS dari source. Aksi ini tidak bisa dibatalkan.`
+                    `⚠️ Yakin mau PINDAHKAN ${selectedKeys.length} node?\n\n` +
+                    `Setelah ditulis & terverifikasi di destination, data node ini akan DIHAPUS dari source.\n` +
+                    `Aksi ini TIDAK BISA DIBATALKAN!\n\n` +
+                    `📌 Pastikan sudah backup data penting!`
                 );
                 if (!confirmed) { logger.warning('Migrasi dibatalkan oleh user.'); return; }
             }
@@ -1063,7 +1336,6 @@
                 success
             });
 
-            // refresh structure kalau move (source berubah)
             if (mode === 'move') {
                 await refreshStructure();
             }
@@ -1101,9 +1373,19 @@
             return `${s}s`;
         }
 
+        // ============ SEARCH / FILTER NODE ============
+        document.getElementById('nodeSearch').addEventListener('input', renderNodesList);
+
+        // ============ CLOSE RULES ALERT ============
+        document.getElementById('closeRulesAlert').addEventListener('click', () => {
+            document.getElementById('rulesAlert').style.display = 'none';
+        });
+
         // ============ EVENT LISTENERS ============
         document.getElementById('testSourceBtn').addEventListener('click', testSource);
         document.getElementById('testDestBtn').addEventListener('click', testDest);
+        document.getElementById('sourceParseConfigBtn').addEventListener('click', () => handleParseConfig('source', 'sourceConfigPaste'));
+        document.getElementById('destParseConfigBtn').addEventListener('click', () => handleParseConfig('dest', 'destConfigPaste'));
         document.getElementById('loadStructureBtn').addEventListener('click', refreshStructure);
         document.getElementById('startMigrationBtn').addEventListener('click', startMigration);
         document.getElementById('clearLogsBtn').addEventListener('click', () => logger.clear());
@@ -1130,8 +1412,9 @@
         });
 
         logger.info('🔥 Firebase Migration Tool Ready! Connect source & destination dulu ya.');
+        logger.info('📌 Jangan lupa set rules database ke publik sementara!');
         document.getElementById('startMigrationBtn').disabled = true;
         document.getElementById('startMigrationBtn').textContent = '⏳ Connect Both Databases';
     </script>
 </body>
-</html>
+    </html>
