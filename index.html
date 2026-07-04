@@ -195,6 +195,29 @@
         .node-key { color: #e8edf5; font-weight: 600; flex: 1; }
         .node-type { color: #8892b0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #121829; border: 1px solid #2a3a5c; }
         .node-empty-hint { color: #8892b0; font-size: 13px; padding: 20px; text-align: center; }
+        .node-type.manual { color: #c084fc; border-color: #7c3aed; background: rgba(124,58,237,0.15); }
+
+        .manual-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .manual-tab {
+            padding: 8px 16px; border-radius: 8px; background: #0d1326; border: 1px solid #2a3a5c;
+            color: #8892b0; font-size: 13px; cursor: pointer; font-weight: 500;
+        }
+        .manual-tab.active { background: #2a3a5c; color: #e8edf5; border-color: #4a9eff; }
+        .manual-panel { display: none; flex-direction: column; gap: 12px; }
+        .manual-panel.active { display: flex; }
+
+        textarea.manual-json {
+            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px;
+            padding: 12px 14px; color: #e8edf5; font-size: 13px;
+            font-family: 'Courier New', monospace; min-height: 160px; resize: vertical;
+            line-height: 1.5;
+        }
+        textarea.manual-json:focus { outline: none; border-color: #4a9eff; }
+
+        .manual-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        .manual-row .form-group { flex: 1; min-width: 160px; }
+        .manual-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .manual-note { font-size: 12px; color: #8892b0; }
 
         .action-section { display: flex; justify-content: center; padding: 12px 0; }
 
@@ -332,7 +355,46 @@
                     <span class="hint" id="nodesHint"></span>
                 </div>
                 <div class="nodes-list" id="nodesList">
-                    <div class="node-empty-hint">Klik "Test Connection" di source lalu struktur akan otomatis dimuat.</div>
+                    <div class="node-empty-hint">Klik "Test Connection" di source buat muat struktur otomatis, atau isi lewat kolom "Input Manual" di bawah.</div>
+                </div>
+            </section>
+
+            <!-- Manual Input -->
+            <section class="nodes-card" id="manualCard">
+                <div class="card-header">
+                    <h3>📝 Input Manual (opsional)</h3>
+                </div>
+                <div class="manual-tabs">
+                    <button class="manual-tab active" id="tabBulk" data-tab="bulk">📦 Paste Banyak Node Sekaligus</button>
+                    <button class="manual-tab" id="tabSingle" data-tab="single">✏️ Tambah 1 Node</button>
+                </div>
+
+                <div class="manual-panel active" id="panelBulk">
+                    <div class="manual-note">
+                        Paste JSON dengan format <code>{ "namaNode1": {...}, "namaNode2": {...} }</code> —
+                        tiap key di level atas otomatis jadi 1 node/tabel terpisah. Atau klik "Ambil dari Source" buat isi otomatis dari node yang lagi dicentang.
+                    </div>
+                    <textarea class="manual-json" id="bulkJsonInput" placeholder='{&#10;  "users": { "u1": { "name": "Budi" } },&#10;  "products": { "p1": { "title": "Voucher 10rb" } }&#10;}'></textarea>
+                    <div class="manual-actions">
+                        <button class="btn-secondary" id="fetchFromSourceBtn">⬇️ Ambil dari Source (node tercentang)</button>
+                        <button class="btn-secondary" id="applyBulkBtn">⚡ Sebar ke Node List</button>
+                        <button class="btn-mini" id="clearBulkBtn">🗑️ Kosongkan</button>
+                    </div>
+                </div>
+
+                <div class="manual-panel" id="panelSingle">
+                    <div class="manual-note">Tambah/timpa satu node secara manual. Kalau nama node sudah ada di list, isinya akan ditimpa dengan data manual ini.</div>
+                    <div class="manual-row">
+                        <div class="form-group">
+                            <label for="singleNodeKey">Nama Node / Tabel</label>
+                            <input type="text" id="singleNodeKey" placeholder="contoh: users" />
+                        </div>
+                    </div>
+                    <textarea class="manual-json" id="singleJsonInput" placeholder='{ "u1": { "name": "Budi" } }'></textarea>
+                    <div class="manual-actions">
+                        <button class="btn-secondary" id="applySingleBtn">⚡ Tambah / Timpa Node</button>
+                        <button class="btn-mini" id="clearSingleBtn">🗑️ Kosongkan</button>
+                    </div>
                 </div>
             </section>
 
@@ -574,7 +636,8 @@
         let sourceConnected = false;
         let destConnected = false;
         let isMigrating = false;
-        let rootNodes = []; // [{key, type}]
+        let rootNodes = []; // [{key, type}] dari source (live)
+        let manualNodeData = {}; // { key: dataObject } hasil paste/ketik manual, override / tambahan
 
         // ============ CONNECTION HANDLERS ============
         async function testSource() {
@@ -666,30 +729,68 @@
                 listEl.innerHTML = '<div class="node-empty-hint">❌ Gagal memuat struktur: ' + e.message + '</div>';
                 logger.error('Gagal memuat struktur: ' + e.message);
             }
-            document.getElementById('modeCard').style.display = rootNodes.length > 0 ? 'block' : 'none';
-            document.getElementById('optionsCard').style.display = rootNodes.length > 0 ? 'block' : 'none';
+            refreshVisibilityByNodeCount();
+        }
+
+        function refreshVisibilityByNodeCount() {
+            const totalKeys = getMergedNodeKeys().length;
+            document.getElementById('nodesCard').style.display = totalKeys > 0 || sourceConnected ? 'block' : 'none';
+            document.getElementById('modeCard').style.display = totalKeys > 0 ? 'block' : 'none';
+            document.getElementById('optionsCard').style.display = totalKeys > 0 ? 'block' : 'none';
+            onModeChange();
             updateStartBtn();
+        }
+
+        function getMergedNodeKeys() {
+            const keys = new Set(rootNodes.map(n => n.key));
+            Object.keys(manualNodeData).forEach(k => keys.add(k));
+            return Array.from(keys);
         }
 
         function renderNodesList() {
             const listEl = document.getElementById('nodesList');
-            if (rootNodes.length === 0) {
-                listEl.innerHTML = '<div class="node-empty-hint">Tidak ada data di source.</div>';
+            const keys = getMergedNodeKeys();
+            const previouslyChecked = new Set(
+                Array.from(document.querySelectorAll('.node-checkbox:checked')).map(cb => cb.dataset.key)
+            );
+            const isFirstRender = document.querySelectorAll('.node-checkbox').length === 0;
+
+            if (keys.length === 0) {
+                listEl.innerHTML = '<div class="node-empty-hint">Belum ada node. Connect source, atau paste/ketik data manual di bawah.</div>';
+                refreshVisibilityByNodeCount();
                 return;
             }
             listEl.innerHTML = '';
-            rootNodes.forEach(node => {
+            keys.forEach(key => {
+                const liveNode = rootNodes.find(n => n.key === key);
+                const isManual = Object.prototype.hasOwnProperty.call(manualNodeData, key);
+                let typeLabel;
+                let typeClass = 'node-type';
+                if (isManual && liveNode) { typeLabel = '📝 manual (override live)'; typeClass += ' manual'; }
+                else if (isManual) { typeLabel = '📝 manual only'; typeClass += ' manual'; }
+                else { typeLabel = liveNode.type; }
+
+                const shouldCheck = isFirstRender ? true : previouslyChecked.has(key);
                 const row = document.createElement('label');
                 row.className = 'node-row';
                 row.innerHTML = `
-                    <input type="checkbox" class="node-checkbox" data-key="${node.key}" checked />
-                    <span class="node-key">${node.key}</span>
-                    <span class="node-type">${node.type}</span>
+                    <input type="checkbox" class="node-checkbox" data-key="${key}" ${shouldCheck ? 'checked' : ''} />
+                    <span class="node-key">${key}</span>
+                    <span class="${typeClass}">${typeLabel}</span>
+                    ${isManual ? `<button class="btn-mini remove-manual-btn" data-key="${key}" type="button">✖ hapus manual</button>` : ''}
                 `;
                 listEl.appendChild(row);
             });
             document.querySelectorAll('.node-checkbox').forEach(cb => cb.addEventListener('change', updateNodesHint));
+            document.querySelectorAll('.remove-manual-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = btn.dataset.key;
+                delete manualNodeData[key];
+                logger.info(`Data manual untuk "${key}" dihapus.`);
+                renderNodesList();
+            }));
             updateNodesHint();
+            refreshVisibilityByNodeCount();
         }
 
         function updateNodesHint() {
@@ -703,12 +804,93 @@
             return Array.from(document.querySelectorAll('.node-checkbox:checked')).map(cb => cb.dataset.key);
         }
 
+        // ============ MANUAL INPUT ============
+        function switchManualTab(tab) {
+            document.getElementById('tabBulk').classList.toggle('active', tab === 'bulk');
+            document.getElementById('tabSingle').classList.toggle('active', tab === 'single');
+            document.getElementById('panelBulk').classList.toggle('active', tab === 'bulk');
+            document.getElementById('panelSingle').classList.toggle('active', tab === 'single');
+        }
+
+        async function fetchSelectedFromSource() {
+            if (!sourceConnected) { logger.error('Connect source dulu sebelum ambil data.'); return; }
+            const keys = getSelectedNodeKeys().filter(k => rootNodes.some(n => n.key === k));
+            if (keys.length === 0) { logger.error('Gak ada node live yang tercentang buat diambil.'); return; }
+            const btn = document.getElementById('fetchFromSourceBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Mengambil...';
+            try {
+                const result = {};
+                for (const key of keys) {
+                    const snap = await get(ref(sourceConn.db, key));
+                    result[key] = snap.exists() ? snap.val() : null;
+                }
+                document.getElementById('bulkJsonInput').value = JSON.stringify(result, null, 2);
+                logger.success(`Data ${keys.length} node diambil dari source ke kolom paste. Edit dulu kalau perlu, lalu klik "Sebar ke Node List".`);
+            } catch (e) {
+                logger.error('Gagal ambil data dari source: ' + e.message);
+            }
+            btn.disabled = false;
+            btn.textContent = '⬇️ Ambil dari Source (node tercentang)';
+        }
+
+        function applyBulkJson() {
+            const raw = document.getElementById('bulkJsonInput').value.trim();
+            if (!raw) { logger.error('Kolom paste masih kosong.'); return; }
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                logger.error('JSON gak valid: ' + e.message);
+                return;
+            }
+            if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+                logger.error('Format harus object di level atas, contoh: { "namaNode": {...} }');
+                return;
+            }
+            const keys = Object.keys(parsed);
+            if (keys.length === 0) { logger.error('Objectnya kosong, gak ada node buat disebar.'); return; }
+            keys.forEach(key => { manualNodeData[key] = parsed[key]; });
+            logger.success(`${keys.length} node dari paste manual ditambahkan ke list: ${keys.join(', ')}`);
+            renderNodesList();
+        }
+
+        function applySingleJson() {
+            const key = document.getElementById('singleNodeKey').value.trim();
+            const raw = document.getElementById('singleJsonInput').value.trim();
+            if (!key) { logger.error('Nama node harus diisi.'); return; }
+            if (!raw) { logger.error('Isi data JSON-nya masih kosong.'); return; }
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch (e) {
+                logger.error('JSON gak valid: ' + e.message);
+                return;
+            }
+            manualNodeData[key] = parsed;
+            logger.success(`Node "${key}" ditambahkan/ditimpa dengan data manual.`);
+            renderNodesList();
+        }
+
         // ============ MODE ============
         function getMode() {
             return document.getElementById('modeMove').checked ? 'move' : 'copy';
         }
 
         function onModeChange() {
+            const moveRadio = document.getElementById('modeMove');
+            const moveLabel = document.getElementById('modeMoveLabel');
+            if (!sourceConnected) {
+                if (moveRadio.checked) { document.getElementById('modeCopy').checked = true; }
+                moveRadio.disabled = true;
+                moveLabel.style.opacity = '0.4';
+                moveLabel.title = 'Butuh koneksi ke source untuk mode Pindahkan';
+            } else {
+                moveRadio.disabled = false;
+                moveLabel.style.opacity = '1';
+                moveLabel.title = '';
+            }
+
             const mode = getMode();
             document.getElementById('modeCopyLabel').classList.toggle('selected', mode === 'copy');
             document.getElementById('modeMoveLabel').classList.toggle('selected', mode === 'move');
@@ -729,10 +911,13 @@
         // ============ START BUTTON STATE ============
         function updateStartBtn() {
             const btn = document.getElementById('startMigrationBtn');
-            const selected = getSelectedNodeKeys().length;
-            const baseReady = sourceConnected && destConnected && !isMigrating && selected > 0;
+            const selectedKeys = getSelectedNodeKeys();
+            const selected = selectedKeys.length;
+            const needsSource = selectedKeys.some(k => !Object.prototype.hasOwnProperty.call(manualNodeData, k));
+            const sourceOk = !needsSource || sourceConnected;
+            const baseReady = sourceOk && destConnected && !isMigrating && selected > 0;
 
-            if (baseReady && sourceConn.databaseURL === destConn.databaseURL) {
+            if (baseReady && sourceConnected && sourceConn.databaseURL === destConn.databaseURL) {
                 btn.disabled = true;
                 btn.textContent = '⚠️ Source & Destination Sama';
                 btn.classList.remove('danger');
@@ -742,7 +927,9 @@
             btn.disabled = !baseReady;
             const mode = getMode();
             if (!baseReady) {
-                btn.textContent = !sourceConnected || !destConnected ? '⏳ Connect Both Databases' : '☑️ Pilih Minimal 1 Node';
+                if (!destConnected) btn.textContent = '⏳ Connect Destination Dulu';
+                else if (!sourceOk) btn.textContent = '⏳ Connect Source (ada node non-manual)';
+                else btn.textContent = '☑️ Pilih Minimal 1 Node';
                 btn.classList.remove('danger');
                 return;
             }
@@ -758,11 +945,13 @@
         // ============ MIGRATION ============
         async function startMigration() {
             if (isMigrating) return;
-            if (!sourceConnected || !destConnected) { logger.error('Connect both databases first!'); return; }
-            if (sourceConn.databaseURL === destConn.databaseURL) { logger.error('Source dan destination tidak boleh sama!'); return; }
-
             const selectedKeys = getSelectedNodeKeys();
             if (selectedKeys.length === 0) { logger.error('Pilih minimal satu node dulu!'); return; }
+
+            const needsSource = selectedKeys.some(k => !Object.prototype.hasOwnProperty.call(manualNodeData, k));
+            if (!destConnected) { logger.error('Connect destination dulu!'); return; }
+            if (needsSource && !sourceConnected) { logger.error('Ada node non-manual yang dipilih, connect source dulu!'); return; }
+            if (sourceConnected && sourceConn.databaseURL === destConn.databaseURL) { logger.error('Source dan destination tidak boleh sama!'); return; }
 
             const mode = getMode();
             if (mode === 'move') {
@@ -797,13 +986,20 @@
                 setNodeRowStatus(key, 'running', '⏳ membaca...');
 
                 try {
-                    const snap = await get(ref(sourceConn.db, key));
-                    if (!snap.exists()) {
-                        setNodeRowStatus(key, 'fail', '⚠️ kosong, dilewati');
-                        logger.warning(`Node "${key}" kosong di source, dilewati.`);
-                        continue;
+                    const isManualKey = Object.prototype.hasOwnProperty.call(manualNodeData, key);
+                    let data;
+                    if (isManualKey) {
+                        data = manualNodeData[key];
+                        logger.info(`Node "${key}" pakai data manual (bukan dari source live).`);
+                    } else {
+                        const snap = await get(ref(sourceConn.db, key));
+                        if (!snap.exists()) {
+                            setNodeRowStatus(key, 'fail', '⚠️ kosong, dilewati');
+                            logger.warning(`Node "${key}" kosong di source, dilewati.`);
+                            continue;
+                        }
+                        data = snap.val();
                     }
-                    const data = snap.val();
                     totalSize += JSON.stringify(data).length;
 
                     setNodeRowStatus(key, 'running', '✍️ menulis ke destination...');
@@ -827,11 +1023,15 @@
                         continue;
                     }
 
-                    if (mode === 'move') {
+                    const liveExists = rootNodes.some(n => n.key === key);
+                    if (mode === 'move' && liveExists) {
                         setNodeRowStatus(key, 'running', '🗑️ menghapus dari source...');
                         await remove(ref(sourceConn.db, key));
                         setNodeRowStatus(key, 'ok', '✅ dipindahkan');
                         logger.success(`Node "${key}" berhasil dipindahkan.`);
+                    } else if (mode === 'move' && !liveExists) {
+                        setNodeRowStatus(key, 'ok', '✅ ditulis (manual, tidak ada yang dihapus)');
+                        logger.info(`Node "${key}" cuma data manual, tidak ada yang dihapus dari source.`);
                     } else {
                         setNodeRowStatus(key, 'ok', '✅ disalin');
                         logger.success(`Node "${key}" berhasil disalin.`);
@@ -917,6 +1117,17 @@
         });
         document.getElementById('modeCopy').addEventListener('change', onModeChange);
         document.getElementById('modeMove').addEventListener('change', onModeChange);
+
+        document.getElementById('tabBulk').addEventListener('click', () => switchManualTab('bulk'));
+        document.getElementById('tabSingle').addEventListener('click', () => switchManualTab('single'));
+        document.getElementById('fetchFromSourceBtn').addEventListener('click', fetchSelectedFromSource);
+        document.getElementById('applyBulkBtn').addEventListener('click', applyBulkJson);
+        document.getElementById('clearBulkBtn').addEventListener('click', () => { document.getElementById('bulkJsonInput').value = ''; });
+        document.getElementById('applySingleBtn').addEventListener('click', applySingleJson);
+        document.getElementById('clearSingleBtn').addEventListener('click', () => {
+            document.getElementById('singleNodeKey').value = '';
+            document.getElementById('singleJsonInput').value = '';
+        });
 
         logger.info('🔥 Firebase Migration Tool Ready! Connect source & destination dulu ya.');
         document.getElementById('startMigrationBtn').disabled = true;
