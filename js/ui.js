@@ -58,80 +58,35 @@ let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
 
-// Parse Firebase Config - IMPROVED
 function parseFirebaseConfig(text) {
-    try {
-        let configText = text;
-        
-        // STRATEGY 1: Cari const firebaseConfig = {...}
-        let match = text.match(/const\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
-        if (match) {
-            configText = match[1];
-        }
-        
-        // STRATEGY 2: Cari const config = {...}
-        if (!match) {
-            match = text.match(/const\s+config\s*=\s*(\{[\s\S]*?\});/);
-            if (match) configText = match[1];
-        }
-        
-        // STRATEGY 3: Cari var firebaseConfig = {...}
-        if (!match) {
-            match = text.match(/var\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
-            if (match) configText = match[1];
-        }
-        
-        // STRATEGY 4: Cari let firebaseConfig = {...}
-        if (!match) {
-            match = text.match(/let\s+firebaseConfig\s*=\s*(\{[\s\S]*?\});/);
-            if (match) configText = match[1];
-        }
-        
-        // STRATEGY 5: Cari object biasa yang ada apiKey
-        if (!match) {
-            match = text.match(/(\{[\s\S]*?apiKey[\s\S]*?\})/);
-            if (match) configText = match[1];
-        }
-        
-        // STRATEGY 6: Cari object biasa yang ada authDomain
-        if (!match) {
-            match = text.match(/(\{[\s\S]*?authDomain[\s\S]*?\})/);
-            if (match) configText = match[1];
-        }
-        
-        // STRATEGY 7: Cari object biasa yang ada databaseURL
-        if (!match) {
-            match = text.match(/(\{[\s\S]*?databaseURL[\s\S]*?\})/);
-            if (match) configText = match[1];
-        }
-        
-        // Bersihkan text
-        let cleaned = configText
-            .replace(/\/\/.*$/gm, '')           // Hapus comments //
-            .replace(/\/\*[\s\S]*?\*\//g, '')    // Hapus comments /* */
-            .replace(/\s+/g, ' ')                // Normalize whitespace
-            .replace(/(\w+):/g, '"$1":')         // Add quotes to keys
-            .replace(/'/g, '"')                  // Single quote to double quote
-            .trim();
-        
-        // Parse JSON
-        const config = JSON.parse(cleaned);
-        
-        // Validasi
-        const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
-        const missing = required.filter(f => !config[f]);
-        
-        if (missing.length > 0) {
-            throw new Error('Missing: ' + missing.join(', '));
-        }
-        
-        return config;
-    } catch (error) {
-        throw new Error('Parse error: ' + error.message);
+    // Cari object yang berisi apiKey
+    const match = text.match(/\{[\s\S]*?apiKey[\s\S]*?\}/);
+    if (!match) {
+        throw new Error('Tidak ditemukan config object');
     }
+    
+    let configText = match[0];
+    
+    // Bersihkan
+    configText = configText
+        .replace(/\/\/.*$/gm, '')
+        .replace(/\s+/g, ' ')
+        .replace(/(\w+):/g, '"$1":')
+        .replace(/'/g, '"')
+        .trim();
+    
+    const config = JSON.parse(configText);
+    
+    // Validasi
+    const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
+    const missing = required.filter(f => !config[f]);
+    if (missing.length > 0) {
+        throw new Error('Missing: ' + missing.join(', '));
+    }
+    
+    return config;
 }
 
-// Fill Form
 function fillForm(type, config) {
     const e = el[type];
     
@@ -143,17 +98,16 @@ function fillForm(type, config) {
     e.messagingSenderId.value = config.messagingSenderId || '';
     e.appId.value = config.appId || '';
     
-    // Add filled class
+    // Highlight filled
     ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(field => {
-        const input = e[field];
-        if (input.value) {
-            input.classList.add('filled');
+        if (e[field].value) {
+            e[field].classList.add('filled');
         } else {
-            input.classList.remove('filled');
+            e[field].classList.remove('filled');
         }
     });
     
-    // Reset connection
+    // Reset status
     if (type === 'source') {
         sourceConnected = false;
         e.status.textContent = 'Not Connected';
@@ -167,38 +121,21 @@ function fillForm(type, config) {
     }
     
     updateStartBtn();
-    logger.info(type + ' config parsed successfully');
+    logger.success(type + ' config loaded!');
 }
 
-// Handle Input
 function handleInput(type, event) {
     const text = event.target.value;
-    if (text.trim().length === 0) {
-        // Clear form if empty
-        const e = el[type];
-        ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(field => {
-            e[field].value = '';
-            e[field].classList.remove('filled');
-        });
-        return;
-    }
+    if (!text.trim()) return;
     
     try {
         const config = parseFirebaseConfig(text);
         fillForm(type, config);
-        logger.success(type + ' auto-parsed! ✅');
     } catch (error) {
-        // Only log if there was previous data
-        const e = el[type];
-        const hasData = e.apiKey.value || e.authDomain.value || e.databaseURL.value;
-        if (hasData) {
-            logger.warning('Parse failed: ' + error.message);
-        }
-        // Don't clear on error, keep existing data
+        // Silent
     }
 }
 
-// Update Start Button
 function updateStartBtn() {
     const btn = el.startBtn;
     const enabled = sourceConnected && destConnected && !isMigrating;
@@ -206,7 +143,6 @@ function updateStartBtn() {
     if (enabled && areSameDatabase()) {
         btn.disabled = true;
         btn.textContent = '⚠️ Same Database';
-        logger.warning('Source and destination are the same');
         return;
     }
     
@@ -214,7 +150,6 @@ function updateStartBtn() {
     btn.textContent = enabled ? '🚀 Start Migration' : '⏳ Connect Both Databases';
 }
 
-// Get Config from form
 function getConfig(type) {
     const e = el[type];
     return {
@@ -228,7 +163,6 @@ function getConfig(type) {
     };
 }
 
-// Update UI functions
 export const updateUI = {};
 
 updateUI.sourceConnected = function(connected, result) {
@@ -300,23 +234,26 @@ export function updateSummary(summary) {
     el.summary.verification.className = 'summary-value ' + (summary.success ? 'success' : 'error');
 }
 
-// Initialize
 export function initializeUI() {
-    // Source auto-parse
+    // Source
     el.source.input.addEventListener('input', (e) => handleInput('source', e));
     el.source.input.addEventListener('paste', (e) => {
-        setTimeout(() => handleInput('source', e), 100);
+        setTimeout(() => handleInput('source', e), 200);
     });
     
-    // Dest auto-parse
+    // Dest
     el.dest.input.addEventListener('input', (e) => handleInput('dest', e));
     el.dest.input.addEventListener('paste', (e) => {
-        setTimeout(() => handleInput('dest', e), 100);
+        setTimeout(() => handleInput('dest', e), 200);
     });
     
     // Test Source
     el.source.testBtn.addEventListener('click', async () => {
         const config = getConfig('source');
+        if (!config.apiKey || !config.databaseURL) {
+            logger.error('Source config belum lengkap!');
+            return;
+        }
         el.source.testBtn.disabled = true;
         el.source.testBtn.textContent = '⏳ Testing...';
         try {
@@ -329,6 +266,10 @@ export function initializeUI() {
     // Test Dest
     el.dest.testBtn.addEventListener('click', async () => {
         const config = getConfig('dest');
+        if (!config.apiKey || !config.databaseURL) {
+            logger.error('Destination config belum lengkap!');
+            return;
+        }
         el.dest.testBtn.disabled = true;
         el.dest.testBtn.textContent = '⏳ Testing...';
         try {
@@ -363,10 +304,9 @@ export function initializeUI() {
     });
 }
 
-// DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
-    logger.info('Migration tool ready - Paste FULL config to auto-fill!');
+    logger.info('🔥 Ready! Paste config to auto-fill');
     el.startBtn.disabled = true;
     el.startBtn.textContent = '⏳ Connect Both Databases';
 });
