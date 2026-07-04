@@ -3,13 +3,10 @@ import { progress } from './progress.js';
 import { testSourceConnection, testDestConnection, areBothConnected, areSameDatabase } from './connection.js';
 import { performMigration } from './migration.js';
 
-/**
- * UI controller
- */
-
 // DOM Elements
 const elements = {
     source: {
+        input: document.getElementById('sourceConfigInput'),
         apiKey: document.getElementById('sourceApiKey'),
         authDomain: document.getElementById('sourceAuthDomain'),
         databaseURL: document.getElementById('sourceDatabaseURL'),
@@ -22,10 +19,9 @@ const elements = {
         info: document.getElementById('sourceConnectionInfo'),
         projectName: document.getElementById('sourceProjectName'),
         dbUrl: document.getElementById('sourceDbUrl'),
-        pasteBtn: document.getElementById('pasteSourceBtn'),
-        textarea: document.getElementById('sourceConfigTextarea'),
     },
     dest: {
+        input: document.getElementById('destConfigInput'),
         apiKey: document.getElementById('destApiKey'),
         authDomain: document.getElementById('destAuthDomain'),
         databaseURL: document.getElementById('destDatabaseURL'),
@@ -38,8 +34,6 @@ const elements = {
         info: document.getElementById('destConnectionInfo'),
         projectName: document.getElementById('destProjectName'),
         dbUrl: document.getElementById('destDbUrl'),
-        pasteBtn: document.getElementById('pasteDestBtn'),
-        textarea: document.getElementById('destConfigTextarea'),
     },
     options: {
         overwrite: document.getElementById('optOverwrite'),
@@ -60,7 +54,6 @@ const elements = {
     clearLogs: document.getElementById('clearLogsBtn'),
 };
 
-// State
 let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
@@ -98,7 +91,8 @@ function parseFirebaseConfig(text) {
             .replace(/\/\/.*$/gm, '') // Remove comments
             .replace(/\s+/g, ' ') // Normalize whitespace
             .replace(/(\w+):/g, '"$1":') // Add quotes to keys
-            .replace(/'/g, '"'); // Replace single quotes with double quotes
+            .replace(/'/g, '"') // Replace single quotes with double quotes
+            .trim();
         
         // Parse JSON
         const config = JSON.parse(cleaned);
@@ -125,13 +119,17 @@ function parseFirebaseConfig(text) {
 function fillFormWithConfig(type, config) {
     const el = elements[type];
     
-    el.apiKey.value = config.apiKey || '';
-    el.authDomain.value = config.authDomain || '';
-    el.databaseURL.value = config.databaseURL || '';
-    el.projectId.value = config.projectId || '';
-    el.storageBucket.value = config.storageBucket || '';
-    el.messagingSenderId.value = config.messagingSenderId || '';
-    el.appId.value = config.appId || '';
+    // Fill form fields
+    const fields = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+    let hasData = false;
+    
+    fields.forEach(field => {
+        const input = el[field];
+        const value = config[field] || '';
+        if (value) hasData = true;
+        input.value = value;
+        input.classList.toggle('filled', !!value);
+    });
     
     // Reset connection status
     if (type === 'source') {
@@ -147,23 +145,47 @@ function fillFormWithConfig(type, config) {
     }
     
     updateStartButton();
-    logger.info(`${type === 'source' ? 'Source' : 'Destination'} config filled from paste`);
+    logger.info(`${type === 'source' ? 'Source' : 'Destination'} config parsed successfully`);
+}
+
+/**
+ * Handle paste/input event
+ * @param {string} type - 'source' or 'dest'
+ * @param {Event} event - Input event
+ */
+function handleConfigInput(type, event) {
+    const text = event.target.value;
+    
+    // Only parse if there's content
+    if (text.trim().length === 0) {
+        return;
+    }
+    
+    try {
+        const config = parseFirebaseConfig(text);
+        fillFormWithConfig(type, config);
+        logger.success(`${type === 'source' ? 'Source' : 'Destination'} config auto-parsed!`);
+    } catch (error) {
+        // Silent fail, don't show error on every keystroke
+        // Only log if there was previous valid config
+        const el = elements[type];
+        const hasValues = el.apiKey.value || el.authDomain.value || el.databaseURL.value;
+        if (hasValues) {
+            // Clear if parse fails
+            const fields = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+            fields.forEach(field => {
+                el[field].value = '';
+                el[field].classList.remove('filled');
+            });
+        }
+    }
 }
 
 /**
  * Update UI for source connection status
- * @param {boolean} connected - Connection status
- * @param {Object} result - Connection result
  */
-export function updateUI(connected, result) {
-    // This is handled by sourceConnected and destConnected functions
-}
+function updateUI() {}
 
-/**
- * Update source connection status
- * @param {boolean} connected - Connection status
- * @param {Object} result - Connection result
- */
 updateUI.sourceConnected = function(connected, result) {
     sourceConnected = connected;
     const status = elements.source.status;
@@ -184,11 +206,6 @@ updateUI.sourceConnected = function(connected, result) {
     updateStartButton();
 };
 
-/**
- * Update destination connection status
- * @param {boolean} connected - Connection status
- * @param {Object} result - Connection result
- */
 updateUI.destConnected = function(connected, result) {
     destConnected = connected;
     const status = elements.dest.status;
@@ -209,9 +226,6 @@ updateUI.destConnected = function(connected, result) {
     updateStartButton();
 };
 
-/**
- * Update migration start button state
- */
 function updateStartButton() {
     const btn = elements.startBtn;
     const enabled = sourceConnected && destConnected && !isMigrating;
@@ -227,18 +241,10 @@ function updateStartButton() {
     btn.textContent = enabled ? '🚀 Start Migration' : '⏳ Connect Both Databases';
 }
 
-/**
- * Update progress
- * @param {number} percentage - Progress percentage
- * @param {string} status - Status message
- */
 updateUI.updateProgress = function(percentage, status) {
     progress.update(percentage, status);
 };
 
-/**
- * Handle migration started
- */
 updateUI.migrationStarted = function() {
     isMigrating = true;
     elements.startBtn.disabled = true;
@@ -247,10 +253,6 @@ updateUI.migrationStarted = function() {
     elements.summarySection.style.display = 'none';
 };
 
-/**
- * Handle migration failed
- * @param {string} error - Error message
- */
 updateUI.migrationFailed = function(error) {
     isMigrating = false;
     elements.startBtn.disabled = false;
@@ -259,10 +261,6 @@ updateUI.migrationFailed = function(error) {
     updateStartButton();
 };
 
-/**
- * Update migration summary
- * @param {Object} summary - Migration summary
- */
 export function updateSummary(summary) {
     const section = elements.summarySection;
     section.style.display = 'block';
@@ -277,94 +275,18 @@ export function updateSummary(summary) {
     elements.summary.verification.className = `summary-value ${summary.success ? 'success' : 'error'}`;
 }
 
-/**
- * Initialize UI event handlers
- */
 export function initializeUI() {
-    // Source paste button
-    elements.source.pasteBtn.addEventListener('click', () => {
-        const textarea = elements.source.textarea;
-        if (textarea.style.display === 'block') {
-            textarea.style.display = 'none';
-            elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
-            return;
-        }
-        textarea.style.display = 'block';
-        textarea.classList.add('active');
-        elements.source.pasteBtn.textContent = '❌ Cancel';
-        textarea.focus();
+    // Source input - auto parse on paste/input
+    elements.source.input.addEventListener('input', (e) => handleConfigInput('source', e));
+    elements.source.input.addEventListener('paste', (e) => {
+        // Allow paste to complete, then parse
+        setTimeout(() => handleConfigInput('source', e), 100);
     });
     
-    // Source paste textarea
-    elements.source.textarea.addEventListener('blur', () => {
-        // Don't auto-close on blur, user can click cancel
-    });
-    
-    elements.source.textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            elements.source.textarea.style.display = 'none';
-            elements.source.textarea.classList.remove('active');
-            elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
-        }
-    });
-    
-    // Source paste submit (Ctrl+Enter or Cmd+Enter)
-    elements.source.textarea.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            try {
-                const config = parseFirebaseConfig(elements.source.textarea.value);
-                fillFormWithConfig('source', config);
-                elements.source.textarea.style.display = 'none';
-                elements.source.textarea.classList.remove('active');
-                elements.source.pasteBtn.textContent = '📋 Paste Firebase Config';
-                logger.success('Source config pasted successfully');
-            } catch (error) {
-                logger.error(`Failed to parse source config: ${error.message}`);
-                alert(`Failed to parse config: ${error.message}`);
-            }
-        }
-    });
-    
-    // Destination paste button
-    elements.dest.pasteBtn.addEventListener('click', () => {
-        const textarea = elements.dest.textarea;
-        if (textarea.style.display === 'block') {
-            textarea.style.display = 'none';
-            elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
-            return;
-        }
-        textarea.style.display = 'block';
-        textarea.classList.add('active');
-        elements.dest.pasteBtn.textContent = '❌ Cancel';
-        textarea.focus();
-    });
-    
-    // Destination paste textarea
-    elements.dest.textarea.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            elements.dest.textarea.style.display = 'none';
-            elements.dest.textarea.classList.remove('active');
-            elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
-        }
-    });
-    
-    // Destination paste submit (Ctrl+Enter or Cmd+Enter)
-    elements.dest.textarea.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            try {
-                const config = parseFirebaseConfig(elements.dest.textarea.value);
-                fillFormWithConfig('dest', config);
-                elements.dest.textarea.style.display = 'none';
-                elements.dest.textarea.classList.remove('active');
-                elements.dest.pasteBtn.textContent = '📋 Paste Firebase Config';
-                logger.success('Destination config pasted successfully');
-            } catch (error) {
-                logger.error(`Failed to parse destination config: ${error.message}`);
-                alert(`Failed to parse config: ${error.message}`);
-            }
-        }
+    // Destination input - auto parse on paste/input
+    elements.dest.input.addEventListener('input', (e) => handleConfigInput('dest', e));
+    elements.dest.input.addEventListener('paste', (e) => {
+        setTimeout(() => handleConfigInput('dest', e), 100);
     });
     
     // Source test
@@ -424,34 +346,8 @@ export function initializeUI() {
     elements.clearLogs.addEventListener('click', () => {
         logger.clear();
     });
-    
-    // Input listeners for start button
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-            // Reset connection status when config changes
-            if (input.id.includes('source') && sourceConnected) {
-                sourceConnected = false;
-                elements.source.status.textContent = 'Not Connected';
-                elements.source.status.className = 'status-badge';
-                elements.source.info.style.display = 'none';
-                updateStartButton();
-            }
-            if (input.id.includes('dest') && destConnected) {
-                destConnected = false;
-                elements.dest.status.textContent = 'Not Connected';
-                elements.dest.status.className = 'status-badge';
-                elements.dest.info.style.display = 'none';
-                updateStartButton();
-            }
-        });
-    });
 }
 
-/**
- * Get config from form
- * @param {string} type - 'source' or 'dest'
- * @returns {Object} Firebase config
- */
 function getConfig(type) {
     const el = elements[type];
     
@@ -466,14 +362,10 @@ function getConfig(type) {
     };
 }
 
-/**
- * Initialize on load
- */
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
     logger.info('Migration tool ready');
     
-    // Auto-update start button
     const startBtn = elements.startBtn;
     if (startBtn) {
         startBtn.disabled = true;
