@@ -1,4 +1,3 @@
-/* Reset & Base */
 * {
     margin: 0;
     padding: 0;
@@ -8,7 +7,6 @@
 :root {
     --bg-primary: #0a0e1a;
     --bg-secondary: #121829;
-    --bg-card: #1a2340;
     --bg-input: #0d1326;
     --text-primary: #e8edf5;
     --text-secondary: #8892b0;
@@ -147,7 +145,6 @@ body {
     border-color: var(--accent-red);
 }
 
-/* Paste Area */
 .paste-area {
     margin-bottom: 16px;
 }
@@ -573,4 +570,4 @@ body {
     .info-label {
         min-width: auto;
     }
-    }
+                               }
