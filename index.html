@@ -26,6 +26,13 @@
                         <h2>📤 SOURCE DATABASE</h2>
                         <span class="status-badge" id="sourceStatus">Not Connected</span>
                     </div>
+                    
+                    <!-- Quick Paste Config -->
+                    <div class="paste-section">
+                        <button class="btn-paste-config" id="pasteSourceBtn">📋 Paste Firebase Config</button>
+                        <textarea class="config-textarea" id="sourceConfigTextarea" placeholder="Paste your firebaseConfig here..." style="display:none;"></textarea>
+                    </div>
+                    
                     <div class="config-form">
                         <div class="form-group">
                             <label for="sourceApiKey">apiKey</label>
@@ -79,6 +86,13 @@
                         <h2>📥 DESTINATION DATABASE</h2>
                         <span class="status-badge" id="destStatus">Not Connected</span>
                     </div>
+                    
+                    <!-- Quick Paste Config -->
+                    <div class="paste-section">
+                        <button class="btn-paste-config" id="pasteDestBtn">📋 Paste Firebase Config</button>
+                        <textarea class="config-textarea" id="destConfigTextarea" placeholder="Paste your firebaseConfig here..." style="display:none;"></textarea>
+                    </div>
+                    
                     <div class="config-form">
                         <div class="form-group">
                             <label for="destApiKey">apiKey</label>
@@ -222,4 +236,4 @@
     <!-- Main Application Script -->
     <script type="module" src="js/ui.js"></script>
 </body>
-    </html>
+                                </html>
