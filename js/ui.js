@@ -3,7 +3,8 @@ import { progress } from './progress.js';
 import { testSourceConnection, testDestConnection, areSameDatabase } from './connection.js';
 import { performMigration } from './migration.js';
 
-const elements = {
+// DOM Elements
+const el = {
     source: {
         input: document.getElementById('sourceConfigInput'),
         apiKey: document.getElementById('sourceApiKey'),
@@ -57,27 +58,22 @@ let sourceConnected = false;
 let destConnected = false;
 let isMigrating = false;
 
+// Parse Firebase Config
 function parseFirebaseConfig(text) {
     try {
         let configText = text;
         
-        // Cari firebaseConfig
-        const configMatch = text.match(/const\s+firebaseConfig\s*=\s*({[\s\S]*?});/);
-        if (configMatch) {
-            configText = configMatch[1];
-        }
+        // Cari const firebaseConfig = {...}
+        const match1 = text.match(/const\s+firebaseConfig\s*=\s*({[\s\S]*?});/);
+        if (match1) configText = match1[1];
         
-        // Cari config
-        const configMatch2 = text.match(/const\s+config\s*=\s*({[\s\S]*?});/);
-        if (configMatch2 && !configMatch) {
-            configText = configMatch2[1];
-        }
+        // Cari const config = {...}
+        const match2 = text.match(/const\s+config\s*=\s*({[\s\S]*?});/);
+        if (match2 && !match1) configText = match2[1];
         
-        // Cari object apa aja
-        const configMatch3 = text.match(/({[\s\S]*?(?:apiKey|authDomain|databaseURL|projectId)[\s\S]*?})/);
-        if (configMatch3 && !configMatch && !configMatch2) {
-            configText = configMatch3[1];
-        }
+        // Cari object {...} yang ada apiKey
+        const match3 = text.match(/({[\s\S]*?(?:apiKey|authDomain|databaseURL|projectId)[\s\S]*?})/);
+        if (match3 && !match1 && !match2) configText = match3[1];
         
         // Bersihkan
         const cleaned = configText
@@ -90,105 +86,74 @@ function parseFirebaseConfig(text) {
         const config = JSON.parse(cleaned);
         
         const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId'];
-        const missing = required.filter(field => !config[field]);
+        const missing = required.filter(f => !config[f]);
         
         if (missing.length > 0) {
-            throw new Error(`Missing: ${missing.join(', ')}`);
+            throw new Error('Missing: ' + missing.join(', '));
         }
         
         return config;
     } catch (error) {
-        throw new Error(`Parse error: ${error.message}`);
+        throw new Error('Parse error: ' + error.message);
     }
 }
 
+// Fill Form
 function fillForm(type, config) {
-    const el = elements[type];
+    const e = el[type];
     
-    const fields = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+    e.apiKey.value = config.apiKey || '';
+    e.authDomain.value = config.authDomain || '';
+    e.databaseURL.value = config.databaseURL || '';
+    e.projectId.value = config.projectId || '';
+    e.storageBucket.value = config.storageBucket || '';
+    e.messagingSenderId.value = config.messagingSenderId || '';
+    e.appId.value = config.appId || '';
     
-    fields.forEach(field => {
-        const input = el[field];
-        const value = config[field] || '';
-        input.value = value;
-        input.classList.toggle('filled', !!value);
+    // Add filled class
+    ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(field => {
+        const input = e[field];
+        if (input.value) {
+            input.classList.add('filled');
+        } else {
+            input.classList.remove('filled');
+        }
     });
     
+    // Reset connection
     if (type === 'source') {
         sourceConnected = false;
-        el.status.textContent = 'Not Connected';
-        el.status.className = 'status-badge';
-        el.info.style.display = 'none';
+        e.status.textContent = 'Not Connected';
+        e.status.className = 'status-badge';
+        e.info.style.display = 'none';
     } else {
         destConnected = false;
-        el.status.textContent = 'Not Connected';
-        el.status.className = 'status-badge';
-        el.info.style.display = 'none';
+        e.status.textContent = 'Not Connected';
+        e.status.className = 'status-badge';
+        e.info.style.display = 'none';
     }
     
-    updateStartButton();
-    logger.info(`${type === 'source' ? 'Source' : 'Destination'} config parsed`);
+    updateStartBtn();
+    logger.info(type + ' config parsed');
 }
 
+// Handle Input
 function handleInput(type, event) {
     const text = event.target.value;
-    
-    if (text.trim().length === 0) {
-        return;
-    }
+    if (text.trim().length === 0) return;
     
     try {
         const config = parseFirebaseConfig(text);
         fillForm(type, config);
-        logger.success(`${type === 'source' ? 'Source' : 'Destination'} auto-parsed!`);
+        logger.success(type + ' auto-parsed!');
     } catch (error) {
-        // Silent
+        // Silent fail
     }
 }
 
-updateUI = {};
-updateUI.sourceConnected = function(connected, result) {
-    sourceConnected = connected;
-    const status = elements.source.status;
-    const info = elements.source.info;
-    
-    if (connected && result) {
-        status.textContent = '✅ Connected';
-        status.className = 'status-badge connected';
-        info.style.display = 'block';
-        elements.source.projectName.textContent = result.projectId;
-        elements.source.dbUrl.textContent = result.databaseURL;
-    } else {
-        status.textContent = '❌ Failed';
-        status.className = 'status-badge error';
-        info.style.display = 'none';
-    }
-    
-    updateStartButton();
-};
-
-updateUI.destConnected = function(connected, result) {
-    destConnected = connected;
-    const status = elements.dest.status;
-    const info = elements.dest.info;
-    
-    if (connected && result) {
-        status.textContent = '✅ Connected';
-        status.className = 'status-badge connected';
-        info.style.display = 'block';
-        elements.dest.projectName.textContent = result.projectId;
-        elements.dest.dbUrl.textContent = result.databaseURL;
-    } else {
-        status.textContent = '❌ Failed';
-        status.className = 'status-badge error';
-        info.style.display = 'none';
-    }
-    
-    updateStartButton();
-};
-
-function updateStartButton() {
-    const btn = elements.startBtn;
+// Update Start Button
+function updateStartBtn() {
+    const btn = el.startBtn;
     const enabled = sourceConnected && destConnected && !isMigrating;
     
     if (enabled && areSameDatabase()) {
@@ -202,127 +167,159 @@ function updateStartButton() {
     btn.textContent = enabled ? '🚀 Start Migration' : '⏳ Connect Both Databases';
 }
 
+// Get Config from form
+function getConfig(type) {
+    const e = el[type];
+    return {
+        apiKey: e.apiKey.value.trim(),
+        authDomain: e.authDomain.value.trim(),
+        databaseURL: e.databaseURL.value.trim(),
+        projectId: e.projectId.value.trim(),
+        storageBucket: e.storageBucket.value.trim(),
+        messagingSenderId: e.messagingSenderId.value.trim(),
+        appId: e.appId.value.trim(),
+    };
+}
+
+// Update UI functions
+export const updateUI = {};
+
+updateUI.sourceConnected = function(connected, result) {
+    sourceConnected = connected;
+    const status = el.source.status;
+    const info = el.source.info;
+    
+    if (connected && result) {
+        status.textContent = '✅ Connected';
+        status.className = 'status-badge connected';
+        info.style.display = 'block';
+        el.source.projectName.textContent = result.projectId;
+        el.source.dbUrl.textContent = result.databaseURL;
+    } else {
+        status.textContent = '❌ Failed';
+        status.className = 'status-badge error';
+        info.style.display = 'none';
+    }
+    updateStartBtn();
+};
+
+updateUI.destConnected = function(connected, result) {
+    destConnected = connected;
+    const status = el.dest.status;
+    const info = el.dest.info;
+    
+    if (connected && result) {
+        status.textContent = '✅ Connected';
+        status.className = 'status-badge connected';
+        info.style.display = 'block';
+        el.dest.projectName.textContent = result.projectId;
+        el.dest.dbUrl.textContent = result.databaseURL;
+    } else {
+        status.textContent = '❌ Failed';
+        status.className = 'status-badge error';
+        info.style.display = 'none';
+    }
+    updateStartBtn();
+};
+
 updateUI.updateProgress = function(percentage, status) {
     progress.update(percentage, status);
 };
 
 updateUI.migrationStarted = function() {
     isMigrating = true;
-    elements.startBtn.disabled = true;
-    elements.startBtn.textContent = '⏳ Migrating...';
+    el.startBtn.disabled = true;
+    el.startBtn.textContent = '⏳ Migrating...';
     progress.start();
-    elements.summarySection.style.display = 'none';
+    el.summarySection.style.display = 'none';
 };
 
 updateUI.migrationFailed = function(error) {
     isMigrating = false;
-    elements.startBtn.disabled = false;
-    elements.startBtn.textContent = '🚀 Start Migration';
+    el.startBtn.disabled = false;
+    el.startBtn.textContent = '🚀 Start Migration';
     progress.complete('Failed');
-    updateStartButton();
+    updateStartBtn();
 };
 
 export function updateSummary(summary) {
-    const section = elements.summarySection;
-    section.style.display = 'block';
-    
-    elements.summary.status.textContent = summary.status;
-    elements.summary.status.className = `summary-value ${summary.success ? 'success' : 'error'}`;
-    elements.summary.time.textContent = summary.time;
-    elements.summary.nodes.textContent = summary.nodes;
-    elements.summary.size.textContent = summary.size;
-    elements.summary.verification.textContent = summary.verification;
-    elements.summary.verification.className = `summary-value ${summary.success ? 'success' : 'error'}`;
+    el.summarySection.style.display = 'block';
+    el.summary.status.textContent = summary.status;
+    el.summary.status.className = 'summary-value ' + (summary.success ? 'success' : 'error');
+    el.summary.time.textContent = summary.time;
+    el.summary.nodes.textContent = summary.nodes;
+    el.summary.size.textContent = summary.size;
+    el.summary.verification.textContent = summary.verification;
+    el.summary.verification.className = 'summary-value ' + (summary.success ? 'success' : 'error');
 }
 
+// Initialize
 export function initializeUI() {
-    // SOURCE - Auto parse on input/paste
-    elements.source.input.addEventListener('input', (e) => handleInput('source', e));
-    elements.source.input.addEventListener('paste', (e) => {
+    // Source auto-parse
+    el.source.input.addEventListener('input', (e) => handleInput('source', e));
+    el.source.input.addEventListener('paste', (e) => {
         setTimeout(() => handleInput('source', e), 100);
     });
     
-    // DEST - Auto parse on input/paste
-    elements.dest.input.addEventListener('input', (e) => handleInput('dest', e));
-    elements.dest.input.addEventListener('paste', (e) => {
+    // Dest auto-parse
+    el.dest.input.addEventListener('input', (e) => handleInput('dest', e));
+    el.dest.input.addEventListener('paste', (e) => {
         setTimeout(() => handleInput('dest', e), 100);
     });
     
     // Test Source
-    elements.source.testBtn.addEventListener('click', async () => {
+    el.source.testBtn.addEventListener('click', async () => {
         const config = getConfig('source');
-        elements.source.testBtn.disabled = true;
-        elements.source.testBtn.textContent = '⏳ Testing...';
-        
+        el.source.testBtn.disabled = true;
+        el.source.testBtn.textContent = '⏳ Testing...';
         try {
             await testSourceConnection(config);
         } catch (error) {}
-        finally {
-            elements.source.testBtn.disabled = false;
-            elements.source.testBtn.textContent = '🔍 Test Connection';
-        }
+        el.source.testBtn.disabled = false;
+        el.source.testBtn.textContent = '🔍 Test Connection';
     });
     
     // Test Dest
-    elements.dest.testBtn.addEventListener('click', async () => {
+    el.dest.testBtn.addEventListener('click', async () => {
         const config = getConfig('dest');
-        elements.dest.testBtn.disabled = true;
-        elements.dest.testBtn.textContent = '⏳ Testing...';
-        
+        el.dest.testBtn.disabled = true;
+        el.dest.testBtn.textContent = '⏳ Testing...';
         try {
             await testDestConnection(config);
         } catch (error) {}
-        finally {
-            elements.dest.testBtn.disabled = false;
-            elements.dest.testBtn.textContent = '🔍 Test Connection';
-        }
+        el.dest.testBtn.disabled = false;
+        el.dest.testBtn.textContent = '🔍 Test Connection';
     });
     
     // Start Migration
-    elements.startBtn.addEventListener('click', async () => {
+    el.startBtn.addEventListener('click', async () => {
         if (isMigrating) return;
-        
         const options = {
-            overwrite: elements.options.overwrite.checked,
-            clearDestination: elements.options.clearDest.checked,
-            verify: elements.options.verify.checked,
-            stopOnError: elements.options.stopOnError.checked,
+            overwrite: el.options.overwrite.checked,
+            clearDestination: el.options.clearDest.checked,
+            verify: el.options.verify.checked,
+            stopOnError: el.options.stopOnError.checked,
         };
-        
         try {
             await performMigration(options);
         } catch (error) {
-            logger.error(`Migration error: ${error.message}`);
+            logger.error('Migration error: ' + error.message);
         } finally {
             isMigrating = false;
-            updateStartButton();
+            updateStartBtn();
         }
     });
     
     // Clear logs
-    elements.clearLogs.addEventListener('click', () => {
+    el.clearLogs.addEventListener('click', () => {
         logger.clear();
     });
 }
 
-function getConfig(type) {
-    const el = elements[type];
-    return {
-        apiKey: el.apiKey.value.trim(),
-        authDomain: el.authDomain.value.trim(),
-        databaseURL: el.databaseURL.value.trim(),
-        projectId: el.projectId.value.trim(),
-        storageBucket: el.storageBucket.value.trim(),
-        messagingSenderId: el.messagingSenderId.value.trim(),
-        appId: el.appId.value.trim(),
-    };
-}
-
+// DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
     logger.info('Migration tool ready - Paste config to auto-fill!');
-    elements.startBtn.disabled = true;
-    elements.startBtn.textContent = '⏳ Connect Both Databases';
+    el.startBtn.disabled = true;
+    el.startBtn.textContent = '⏳ Connect Both Databases';
 });
-
-export { updateUI };
