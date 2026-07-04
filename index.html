@@ -5,398 +5,864 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Firebase Database Migration</title>
     <style>
+        /* ========== CSS VARIABLES (DARK/LIGHT MODE) ========== */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #121829;
+            --bg-card: #121829;
+            --bg-input: #0d1326;
+            --bg-hover: #1a2240;
+            --bg-border: #2a3a5c;
+            --bg-border-light: #3a4a6c;
+            --text-primary: #e8edf5;
+            --text-secondary: #8892b0;
+            --text-muted: #6a7a9a;
+            --text-white: #ffffff;
+            --shadow-color: rgba(0,0,0,0.3);
+            --preview-bg: #0a0e1a;
+            --badge-bg: #0d1326;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #e8ecf0;
+            --bg-hover: #dce0e6;
+            --bg-border: #c8ced6;
+            --bg-border-light: #a8b0be;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a5568;
+            --text-muted: #6b7a8f;
+            --text-white: #1a1a2e;
+            --shadow-color: rgba(0,0,0,0.1);
+            --preview-bg: #f8f9fa;
+            --badge-bg: #e8ecf0;
+        }
+
+        /* ========== RESET & BASE ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0e1a;
-            color: #e8edf5;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
+            transition: background 0.3s, color 0.3s;
         }
 
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #121829; }
-        ::-webkit-scrollbar-thumb { background: #2a3a5c; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 4px; }
 
         .app-container { max-width: 1400px; margin: 0 auto; }
 
-        /* ========== RULES ALERT BANNER ========== */
+        /* ========== RULES ALERT ========== */
         .rules-alert {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border: 2px solid #fbbf24;
             border-radius: 12px;
-            padding: 16px 24px;
-            margin-bottom: 24px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
             display: flex;
             align-items: flex-start;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
+            transition: background 0.3s;
         }
-        .rules-alert .icon { font-size: 28px; flex-shrink: 0; }
-        .rules-alert .content { flex: 1; }
-        .rules-alert .content h3 { color: #fbbf24; font-size: 16px; margin-bottom: 6px; }
-        .rules-alert .content p { color: #8892b0; font-size: 14px; line-height: 1.6; }
+        [data-theme="light"] .rules-alert {
+            background: linear-gradient(135deg, #fff8e1, #fff3cd);
+            border-color: #f59e0b;
+        }
+        .rules-alert .icon { font-size: 24px; flex-shrink: 0; }
+        .rules-alert .content { flex: 1; min-width: 200px; }
+        .rules-alert .content h3 { color: #fbbf24; font-size: 15px; margin-bottom: 4px; }
+        [data-theme="light"] .rules-alert .content h3 { color: #d97706; }
+        .rules-alert .content p { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
         .rules-alert .content code {
-            background: #0d1326;
-            padding: 2px 10px;
-            border-radius: 6px;
+            background: var(--bg-input);
+            padding: 2px 8px;
+            border-radius: 4px;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 12px;
             color: #4ade80;
             display: inline-block;
-            margin: 4px 0;
+            margin: 2px 0;
+            word-break: break-all;
         }
+        [data-theme="light"] .rules-alert .content code { color: #059669; }
         .rules-alert .btn-close-alert {
             background: none;
             border: none;
-            color: #8892b0;
-            font-size: 20px;
+            color: var(--text-secondary);
+            font-size: 18px;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 2px 6px;
+            flex-shrink: 0;
         }
-        .rules-alert .btn-close-alert:hover { color: #e8edf5; }
+        .rules-alert .btn-close-alert:hover { color: var(--text-primary); }
 
+        /* ========== HEADER ========== */
         .app-header {
-            background: #121829;
-            border: 1px solid #2a3a5c;
+            background: var(--bg-card);
+            border: 1px solid var(--bg-border);
             border-radius: 12px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: background 0.3s, border 0.3s;
         }
-
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-left svg { width: 32px; height: 32px; flex-shrink: 0; }
         .app-header h1 {
-            font-size: 28px;
+            font-size: clamp(18px, 4vw, 28px);
             font-weight: 700;
             background: linear-gradient(135deg, #4a9eff, #7c3aed);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        .version {
-            color: #8892b0;
-            font-size: 14px;
-            background: #0d1326;
-            padding: 4px 12px;
-            border-radius: 20px;
-            border: 1px solid #2a3a5c;
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
+        .version {
+            color: var(--text-secondary);
+            font-size: 12px;
+            background: var(--bg-input);
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--bg-border);
+        }
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { background: var(--bg-hover); transform: scale(1.05); }
+        .theme-toggle svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .main-content { display: flex; flex-direction: column; gap: 24px; }
+        /* ========== MAIN CONTENT ========== */
+        .main-content { display: flex; flex-direction: column; gap: 16px; }
 
-        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 992px) { .config-grid { grid-template-columns: 1fr; } }
 
-        @media (max-width: 1024px) { .config-grid { grid-template-columns: 1fr; } }
-
-        .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card {
-            background: #121829;
-            border: 1px solid #2a3a5c;
+        .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card, .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-border);
             border-radius: 12px;
-            padding: 24px;
+            padding: 16px 18px;
+            transition: background 0.3s, border 0.3s, padding 0.3s;
+        }
+        @media (max-width: 480px) {
+            .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card, .preview-card {
+                padding: 12px 14px;
+            }
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #2a3a5c;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--bg-border);
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
-
-        .card-header h2, .card-header h3 { font-size: 18px; font-weight: 600; color: #e8edf5; }
+        .card-header h2, .card-header h3 { 
+            font-size: clamp(15px, 2vw, 18px); 
+            font-weight: 600; 
+            color: var(--text-primary);
+        }
+        .card-header .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .status-badge {
-            font-size: 13px;
-            padding: 4px 14px;
+            font-size: 12px;
+            padding: 3px 12px;
             border-radius: 20px;
-            background: #0d1326;
-            color: #8892b0;
-            border: 1px solid #2a3a5c;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--bg-border);
+            white-space: nowrap;
         }
-
         .status-badge.connected { background: rgba(74, 222, 128, 0.15); color: #4ade80; border-color: #4ade80; }
         .status-badge.error { background: rgba(248, 113, 113, 0.15); color: #f87171; border-color: #f87171; }
 
-        .config-form { display: flex; flex-direction: column; gap: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 13px; color: #8892b0; font-weight: 500; font-family: 'Courier New', monospace; }
-
-        .form-group input {
-            background: #0d1326;
-            border: 1px solid #2a3a5c;
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #e8edf5;
-            font-size: 14px;
+        /* ========== FORMS ========== */
+        .config-form { display: flex; flex-direction: column; gap: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 3px; }
+        .form-group label { 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            font-weight: 500; 
             font-family: 'Courier New', monospace;
+        }
+        .form-group input {
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            transition: border 0.3s, background 0.3s, color 0.3s;
+            width: 100%;
+            min-width: 0;
         }
         .form-group input:focus { outline: none; border-color: #4a9eff; }
 
+        /* ========== BUTTONS ========== */
         .btn-test, .btn-secondary {
-            background: #0d1326;
-            border: 1px solid #2a3a5c;
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
             border-radius: 8px;
-            padding: 10px 20px;
-            color: #e8edf5;
-            font-size: 14px;
+            padding: 8px 16px;
+            color: var(--text-primary);
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            margin-top: 4px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
-        .btn-test:hover:not(:disabled), .btn-secondary:hover:not(:disabled) { background: #2a3a5c; border-color: #4a9eff; }
+        .btn-test:hover:not(:disabled), .btn-secondary:hover:not(:disabled) { 
+            background: var(--bg-hover); 
+            border-color: #4a9eff; 
+        }
         .btn-test:disabled, .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-test svg, .btn-secondary svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
 
         .btn-migrate {
             background: linear-gradient(135deg, #4a9eff, #7c3aed);
             border: none;
             border-radius: 12px;
-            padding: 16px 40px;
+            padding: 14px 30px;
             color: white;
-            font-size: 18px;
+            font-size: clamp(15px, 2vw, 18px);
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .btn-migrate.danger { background: linear-gradient(135deg, #f87171, #b91c1c); }
-        .btn-migrate:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-migrate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(74, 158, 255, 0.3); }
         .btn-migrate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-migrate svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
 
         .btn-clear-logs, .btn-mini {
-            background: #0d1326;
-            border: 1px solid #2a3a5c;
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
             border-radius: 6px;
-            padding: 6px 16px;
-            color: #8892b0;
-            font-size: 12px;
+            padding: 4px 12px;
+            color: var(--text-secondary);
+            font-size: 11px;
             cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
         }
-        .btn-clear-logs:hover, .btn-mini:hover { background: #2a3a5c; color: #e8edf5; }
+        .btn-clear-logs:hover, .btn-mini:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .btn-clear-logs svg, .btn-mini svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
 
+        /* ========== CONNECTION INFO ========== */
         .connection-info {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #2a3a5c;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bg-border);
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
-        .info-row { display: flex; gap: 12px; font-size: 14px; }
-        .info-label { color: #8892b0; min-width: 110px; }
-        .info-value { color: #e8edf5; font-family: 'Courier New', monospace; font-size: 13px; word-break: break-all; }
+        .info-row { display: flex; gap: 10px; font-size: 13px; flex-wrap: wrap; }
+        .info-label { color: var(--text-secondary); min-width: 90px; flex-shrink: 0; }
+        .info-value { color: var(--text-primary); font-family: 'Courier New', monospace; font-size: 12px; word-break: break-all; }
         .info-value.success { color: #4ade80; }
 
-        .options-card h3, .nodes-card h3, .mode-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #e8edf5; }
-
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-        .option-item {
-            display: flex; align-items: center; gap: 10px; font-size: 14px; color: #8892b0;
-            cursor: pointer; padding: 8px 12px; border-radius: 8px; background: #0d1326;
+        /* ========== OPTIONS & MODE ========== */
+        .options-card h3, .nodes-card h3, .mode-card h3, .preview-card h3 { 
+            font-size: clamp(14px, 1.8vw, 16px); 
+            font-weight: 600; 
+            margin-bottom: 12px; 
+            color: var(--text-primary);
         }
-        .option-item:hover { background: #2a3a5c; }
-        .option-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a9eff; cursor: pointer; }
+
+        .options-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 8px; 
+        }
+        @media (max-width: 480px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+        .option-item {
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 13px; 
+            color: var(--text-secondary);
+            cursor: pointer; 
+            padding: 6px 10px; 
+            border-radius: 8px; 
+            background: var(--bg-input);
+            transition: background 0.3s;
+        }
+        .option-item:hover { background: var(--bg-hover); }
+        .option-item input[type="checkbox"] { 
+            width: 16px; 
+            height: 16px; 
+            accent-color: #4a9eff; 
+            cursor: pointer; 
+            flex-shrink: 0;
+        }
         .option-item.disabled { opacity: 0.5; pointer-events: none; }
 
-        .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+        .mode-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 10px; 
+        }
+        @media (max-width: 480px) {
+            .mode-grid { grid-template-columns: 1fr; }
+        }
         .mode-item {
-            display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 10px;
-            background: #0d1326; border: 2px solid #2a3a5c; cursor: pointer;
+            display: flex; 
+            align-items: flex-start; 
+            gap: 8px; 
+            padding: 12px; 
+            border-radius: 10px;
+            background: var(--bg-input); 
+            border: 2px solid var(--bg-border); 
+            cursor: pointer;
+            transition: all 0.3s;
         }
         .mode-item.selected { border-color: #4a9eff; }
         .mode-item.selected.danger-selected { border-color: #f87171; }
-        .mode-item input[type="radio"] { margin-top: 3px; width: 16px; height: 16px; accent-color: #4a9eff; }
-        .mode-title { font-weight: 600; font-size: 14px; color: #e8edf5; }
-        .mode-desc { font-size: 12px; color: #8892b0; margin-top: 2px; }
+        .mode-item:hover { border-color: #4a9eff; }
+        .mode-item input[type="radio"] { 
+            margin-top: 2px; 
+            width: 16px; 
+            height: 16px; 
+            accent-color: #4a9eff; 
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .mode-title { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+        .mode-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 
-        .nodes-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-        .nodes-toolbar .hint { font-size: 12px; color: #8892b0; margin-left: auto; }
-        
+        /* ========== NODES ========== */
+        .nodes-toolbar { 
+            display: flex; 
+            gap: 6px; 
+            margin-bottom: 10px; 
+            flex-wrap: wrap; 
+            align-items: center; 
+        }
+        .nodes-toolbar .hint { 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            margin-left: auto; 
+        }
         .nodes-toolbar input[type="text"] {
-            background: #0d1326;
-            border: 1px solid #2a3a5c;
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
             border-radius: 6px;
-            padding: 6px 12px;
-            color: #e8edf5;
+            padding: 5px 10px;
+            color: var(--text-primary);
             font-size: 13px;
-            min-width: 150px;
+            min-width: 120px;
+            flex: 1;
+            max-width: 200px;
+            transition: border 0.3s, background 0.3s, color 0.3s;
         }
         .nodes-toolbar input[type="text"]:focus { outline: none; border-color: #4a9eff; }
+        @media (max-width: 480px) {
+            .nodes-toolbar input[type="text"] { max-width: 100%; flex: 1 1 100%; }
+            .nodes-toolbar .hint { margin-left: 0; width: 100%; text-align: center; }
+        }
 
         .nodes-list {
-            display: flex; flex-direction: column; gap: 6px;
-            max-height: 320px; overflow-y: auto;
-            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px; padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px;
+            max-height: 280px; 
+            overflow-y: auto;
+            background: var(--preview-bg); 
+            border: 1px solid var(--bg-border); 
+            border-radius: 8px; 
+            padding: 8px;
+            transition: background 0.3s;
         }
         .node-row {
-            display: flex; align-items: center; gap: 10px;
-            padding: 8px 10px; border-radius: 6px; background: #0d1326;
-            font-family: 'Courier New', monospace; font-size: 13px;
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            padding: 6px 8px; 
+            border-radius: 6px; 
+            background: var(--bg-input);
+            font-family: 'Courier New', monospace; 
+            font-size: 13px;
             cursor: pointer;
             transition: background 0.2s;
+            flex-wrap: wrap;
         }
-        .node-row:hover { background: #1a2240; }
-        .node-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4a9eff; cursor: pointer; }
-        .node-key { color: #e8edf5; font-weight: 600; flex: 1; }
-        .node-type { color: #8892b0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #121829; border: 1px solid #2a3a5c; }
-        .node-count { color: #4a9eff; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #0d1326; }
-        .node-empty-hint { color: #8892b0; font-size: 13px; padding: 20px; text-align: center; }
-        .node-type.manual { color: #c084fc; border-color: #7c3aed; background: rgba(124,58,237,0.15); }
+        .node-row:hover { background: var(--bg-hover); }
+        .node-row input[type="checkbox"] { 
+            width: 16px; 
+            height: 16px; 
+            accent-color: #4a9eff; 
+            cursor: pointer; 
+            flex-shrink: 0;
+        }
+        .node-key { 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            flex: 1; 
+            min-width: 60px;
+            word-break: break-all;
+        }
+        .node-type { 
+            color: var(--text-secondary); 
+            font-size: 10px; 
+            padding: 1px 6px; 
+            border-radius: 10px; 
+            background: var(--badge-bg); 
+            border: 1px solid var(--bg-border);
+            white-space: nowrap;
+        }
+        .node-count { 
+            color: #4a9eff; 
+            font-size: 10px; 
+            padding: 1px 6px; 
+            border-radius: 10px; 
+            background: var(--badge-bg);
+            white-space: nowrap;
+        }
+        .node-type.manual { 
+            color: #c084fc; 
+            border-color: #7c3aed; 
+            background: rgba(124,58,237,0.15); 
+        }
+        .node-preview-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .node-preview-btn:hover { color: #4a9eff; }
+        .node-empty-hint { 
+            color: var(--text-secondary); 
+            font-size: 13px; 
+            padding: 16px; 
+            text-align: center; 
+        }
 
-        .manual-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .manual-tab {
-            padding: 8px 16px; border-radius: 8px; background: #0d1326; border: 1px solid #2a3a5c;
-            color: #8892b0; font-size: 13px; cursor: pointer; font-weight: 500;
+        /* ========== MANUAL INPUT ========== */
+        .manual-tabs { 
+            display: flex; 
+            gap: 6px; 
+            margin-bottom: 12px; 
+            flex-wrap: wrap; 
         }
-        .manual-tab.active { background: #2a3a5c; color: #e8edf5; border-color: #4a9eff; }
-        .manual-panel { display: none; flex-direction: column; gap: 12px; }
+        .manual-tab {
+            padding: 6px 14px; 
+            border-radius: 8px; 
+            background: var(--bg-input); 
+            border: 1px solid var(--bg-border);
+            color: var(--text-secondary); 
+            font-size: 12px; 
+            cursor: pointer; 
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .manual-tab.active { 
+            background: var(--bg-hover); 
+            color: var(--text-primary); 
+            border-color: #4a9eff; 
+        }
+        .manual-panel { display: none; flex-direction: column; gap: 10px; }
         .manual-panel.active { display: flex; }
 
-        textarea.manual-json {
-            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px;
-            padding: 12px 14px; color: #e8edf5; font-size: 13px;
-            font-family: 'Courier New', monospace; min-height: 160px; resize: vertical;
+        textarea.manual-json, textarea.config-paste-input {
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            min-height: 120px;
+            resize: vertical;
             line-height: 1.5;
+            width: 100%;
+            transition: border 0.3s, background 0.3s, color 0.3s;
         }
-        textarea.manual-json:focus { outline: none; border-color: #4a9eff; }
+        textarea.manual-json:focus, textarea.config-paste-input:focus { 
+            outline: none; 
+            border-color: #4a9eff; 
+        }
+        @media (max-width: 480px) {
+            textarea.manual-json, textarea.config-paste-input { min-height: 100px; font-size: 12px; }
+        }
 
-        .manual-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-        .manual-row .form-group { flex: 1; min-width: 160px; }
-        .manual-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .manual-row { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            align-items: flex-end; 
+        }
+        .manual-row .form-group { flex: 1; min-width: 120px; }
+        .manual-actions { 
+            display: flex; 
+            gap: 6px; 
+            flex-wrap: wrap; 
+        }
         .paste-config-box {
-            background: #0d1326; border: 1px dashed #4a9eff33; border-radius: 8px;
-            padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;
+            background: var(--bg-input); 
+            border: 1px dashed rgba(74, 158, 255, 0.3); 
+            border-radius: 8px;
+            padding: 12px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px;
         }
         .paste-config-box label {
-            font-size: 12px; color: #8892b0; font-weight: 600;
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            font-weight: 600;
         }
-        textarea.config-paste-input {
-            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px;
-            padding: 10px 12px; color: #e8edf5; font-size: 12px;
-            font-family: 'Courier New', monospace; min-height: 90px; resize: vertical; line-height: 1.5;
+        .paste-config-hint { font-size: 11px; color: var(--text-muted); }
+        .manual-note { 
+            font-size: 13px; 
+            color: var(--text-secondary); 
+            line-height: 1.5; 
         }
-        textarea.config-paste-input:focus { outline: none; border-color: #4a9eff; }
-        .paste-config-hint { font-size: 11px; color: #8892b0; }
+        .manual-note code { 
+            background: var(--bg-input); 
+            padding: 1px 6px; 
+            border-radius: 4px; 
+            font-size: 12px;
+        }
 
-        .action-section { display: flex; justify-content: center; padding: 12px 0; }
+        /* ========== ACTION SECTION ========== */
+        .action-section { 
+            display: flex; 
+            justify-content: center; 
+            padding: 8px 0; 
+        }
+        @media (max-width: 480px) {
+            .action-section .btn-migrate { max-width: 100%; padding: 12px 20px; font-size: 14px; }
+        }
 
-        .progress-container { display: flex; flex-direction: column; gap: 12px; }
-        .progress-bar-track { width: 100%; height: 8px; background: #0d1326; border-radius: 10px; overflow: hidden; }
+        /* ========== PROGRESS ========== */
+        .progress-container { display: flex; flex-direction: column; gap: 10px; }
+        .progress-bar-track { 
+            width: 100%; 
+            height: 8px; 
+            background: var(--bg-input); 
+            border-radius: 10px; 
+            overflow: hidden; 
+        }
         .progress-bar-fill {
-            height: 100%; background: linear-gradient(90deg, #4a9eff, #7c3aed);
-            border-radius: 10px; transition: width 0.5s ease; width: 0%;
+            height: 100%; 
+            background: linear-gradient(90deg, #4a9eff, #7c3aed);
+            border-radius: 10px; 
+            transition: width 0.5s ease; 
+            width: 0%;
         }
-        .progress-info { display: flex; justify-content: space-between; font-size: 14px; color: #8892b0; }
+        .progress-info { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 13px; 
+            color: var(--text-secondary); 
+            flex-wrap: wrap;
+            gap: 4px;
+        }
         .progress-percentage { font-weight: 600; color: #4a9eff; }
-        .progress-status { color: #8892b0; }
+        .progress-status { color: var(--text-secondary); }
 
-        .node-status-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+        .node-status-list { 
+            margin-top: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            max-height: 200px;
+            overflow-y: auto;
+        }
         .node-status-row {
-            display: flex; justify-content: space-between; gap: 10px;
-            font-family: 'Courier New', monospace; font-size: 12px;
-            background: #0d1326; padding: 6px 12px; border-radius: 6px; color: #8892b0;
+            display: flex; 
+            justify-content: space-between; 
+            gap: 8px;
+            font-family: 'Courier New', monospace; 
+            font-size: 11px;
+            background: var(--bg-input); 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            color: var(--text-secondary);
+            flex-wrap: wrap;
         }
         .node-status-row.ok { color: #4ade80; }
         .node-status-row.fail { color: #f87171; }
         .node-status-row.running { color: #4a9eff; }
 
-        .logs-card .logs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .logs-card h3 { font-size: 16px; font-weight: 600; color: #e8edf5; }
+        /* ========== LOGS ========== */
+        .logs-card .logs-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .logs-card h3 { font-size: clamp(14px, 1.8vw, 16px); font-weight: 600; color: var(--text-primary); }
 
         .logs-terminal {
-            background: #0a0e1a; border: 1px solid #2a3a5c; border-radius: 8px; padding: 16px;
-            min-height: 200px; max-height: 400px; overflow-y: auto;
-            font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8;
+            background: var(--preview-bg); 
+            border: 1px solid var(--bg-border); 
+            border-radius: 8px; 
+            padding: 12px;
+            min-height: 150px; 
+            max-height: 300px; 
+            overflow-y: auto;
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            line-height: 1.6;
+            transition: background 0.3s;
         }
-        .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(42, 58, 92, 0.2); }
+        @media (max-width: 480px) {
+            .logs-terminal { min-height: 120px; max-height: 200px; font-size: 11px; padding: 10px; }
+        }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid var(--bg-border); }
         .log-entry:last-child { border-bottom: none; }
-        .log-entry.info { color: #8892b0; }
+        .log-entry.info { color: var(--text-secondary); }
         .log-entry.success { color: #4ade80; }
         .log-entry.error { color: #f87171; }
         .log-entry.warning { color: #fbbf24; }
         .log-entry.progress { color: #4a9eff; }
 
-        .summary-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #e8edf5; }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        .summary-item { background: #0d1326; padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .summary-label { font-size: 12px; color: #8892b0; text-transform: uppercase; letter-spacing: 0.5px; }
-        .summary-value { font-size: 18px; font-weight: 600; color: #e8edf5; font-family: 'Courier New', monospace; }
+        /* ========== SUMMARY ========== */
+        .summary-card h3 { 
+            font-size: clamp(14px, 1.8vw, 16px); 
+            font-weight: 600; 
+            margin-bottom: 12px; 
+            color: var(--text-primary);
+        }
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 12px; 
+        }
+        @media (max-width: 480px) {
+            .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        }
+        .summary-item { 
+            background: var(--bg-input); 
+            padding: 12px; 
+            border-radius: 8px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+        }
+        .summary-label { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+        .summary-value { 
+            font-size: clamp(14px, 1.5vw, 18px); 
+            font-weight: 600; 
+            color: var(--text-primary); 
+            font-family: 'Courier New', monospace; 
+        }
         .summary-value.success { color: #4ade80; }
         .summary-value.error { color: #f87171; }
 
-        /* ========== FOOTER COPYRIGHT ========== */
-        .app-footer {
-            margin-top: 40px;
-            padding: 24px 20px 16px;
-            text-align: center;
-            border-top: 1px solid #2a3a5c;
-            color: #8892b0;
-            font-size: 14px;
+        /* ========== PREVIEW MODAL ========== */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
         }
-        .app-footer .heart { color: #f87171; display: inline-block; animation: pulse 1.5s ease infinite; }
+        .preview-modal.active { display: flex; }
+        .preview-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-border);
+            border-radius: 16px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .preview-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--bg-border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .preview-modal-header h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .preview-modal-header h3 span { color: var(--text-secondary); font-weight: 400; }
+        .preview-modal-close {
+            background: var(--bg-input);
+            border: 1px solid var(--bg-border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .preview-modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .preview-modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 60vh;
+        }
+        .preview-modal-body pre {
+            background: var(--preview-bg);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--text-primary);
+            margin: 0;
+            border: 1px solid var(--bg-border);
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .preview-modal-body .preview-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .preview-modal-body .preview-info-item {
+            background: var(--bg-input);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-modal-body .preview-info-item .label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .preview-modal-body .preview-info-item .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* ========== FOOTER ========== */
+        .app-footer {
+            margin-top: 30px;
+            padding: 16px 20px 12px;
+            text-align: center;
+            border-top: 1px solid var(--bg-border);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .app-footer .heart { 
+            color: #f87171; 
+            display: inline-block; 
+            animation: pulse 1.5s ease infinite; 
+        }
         .app-footer .dev-name {
             background: linear-gradient(135deg, #4a9eff, #7c3aed);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 700;
         }
-        .app-footer .version-text { color: #2a3a5c; font-size: 12px; margin-top: 4px; }
-
+        .app-footer .version-text { 
+            color: var(--text-muted); 
+            font-size: 11px; 
+            margin-top: 2px; 
+        }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
         }
 
-        /* ========== IMPORT/EXPORT ========== */
-        .import-export-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            body { padding: 12px; }
-            .app-header h1 { font-size: 22px; }
-            .config-card, .options-card, .progress-card, .logs-card, .summary-card, .nodes-card, .mode-card { padding: 16px; }
-            .options-grid { grid-template-columns: 1fr; }
-            .summary-grid { grid-template-columns: 1fr 1fr; }
-            .btn-migrate { max-width: 100%; font-size: 16px; padding: 14px 20px; }
-            .rules-alert { padding: 12px 16px; }
-            .rules-alert .content code { font-size: 11px; }
-        }
         @media (max-width: 480px) {
-            .app-header h1 { font-size: 18px; }
-            .summary-grid { grid-template-columns: 1fr; }
-            .info-row { flex-direction: column; gap: 2px; }
-            .info-label { min-width: auto; }
+            .app-footer { font-size: 12px; padding: 12px 14px 10px; }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- ========== RULES ALERT BANNER ========== -->
+        <!-- ========== RULES ALERT ========== -->
         <div class="rules-alert" id="rulesAlert">
-            <div class="icon">⚠️</div>
+            <span class="icon">⚠️</span>
             <div class="content">
                 <h3>🔐 Aturan Firebase Rules (Sementara)</h3>
                 <p>
@@ -407,7 +873,7 @@
   ".write": "auth != null || true"
 }</code>
                     <br />
-                    <span style="color: #f87171; font-size: 13px;">
+                    <span style="color: #f87171; font-size: 12px;">
                         ⚠️ Jangan lupa kembalikan rules ke pengaturan semula setelah migrasi selesai!
                     </span>
                 </p>
@@ -415,13 +881,29 @@
             <button class="btn-close-alert" id="closeRulesAlert" title="Tutup">✕</button>
         </div>
 
+        <!-- ========== HEADER ========== -->
         <header class="app-header">
-            <div class="header-content">
-                <h1>🔥 Firebase Database Migration</h1>
-                <span class="version">v2.2.0</span>
+            <div class="header-left">
+                <!-- Logo SVG -->
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#4a9eff"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#7c3aed" opacity="0.6"/>
+                </svg>
+                <h1>Firebase Database Migration</h1>
+            </div>
+            <div class="header-right">
+                <span class="version">v2.3.0</span>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <!-- Sun/Moon SVG -->
+                    <svg viewBox="0 0 24 24" id="themeIcon">
+                        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM12 3c-2.69 0-4.77 2.05-4.77 4.77 0 2.72 2.08 4.77 4.77 4.77s4.77-2.05 4.77-4.77C16.77 5.05 14.69 3 12 3z"/>
+                        <path d="M12 19c-3.87 0-7-3.13-7-7 0-2.69 1.52-4.87 3.77-6.05C8.3 4.42 6.17 6.07 5 8.5 3.83 10.93 4.48 14.46 6.97 16.95 9.46 19.44 12.99 20.09 15.42 18.92 17.85 17.75 19.5 15.62 20.05 13.77 18.87 16.48 15.69 19 12 19z"/>
+                    </svg>
+                </button>
             </div>
         </header>
 
+        <!-- ========== MAIN CONTENT ========== -->
         <main class="main-content">
             <div class="config-grid">
                 <!-- Source Database -->
@@ -435,7 +917,10 @@
                         <div class="paste-config-box">
                             <label>⚡ Paste Kode Config Firebase (auto-isi form di bawah)</label>
                             <textarea class="config-paste-input" id="sourceConfigPaste" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...",&#10;  databaseURL: "...",&#10;  ...&#10;};'></textarea>
-                            <button class="btn-secondary" id="sourceParseConfigBtn" type="button">⚡ Auto-Isi dari Paste</button>
+                            <button class="btn-secondary" id="sourceParseConfigBtn" type="button">
+                                <svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                                Auto-Isi dari Paste
+                            </button>
                             <div class="paste-config-hint">Bisa paste kode lengkap dari Firebase Console (yang ada import, comment, dll), gak masalah.</div>
                         </div>
                         <div class="form-group"><label for="sourceApiKey">apiKey</label><input type="text" id="sourceApiKey" placeholder="Masukkan apiKey" /></div>
@@ -445,7 +930,10 @@
                         <div class="form-group"><label for="sourceStorageBucket">storageBucket</label><input type="text" id="sourceStorageBucket" placeholder="project-id.appspot.com" /></div>
                         <div class="form-group"><label for="sourceMessagingSenderId">messagingSenderId</label><input type="text" id="sourceMessagingSenderId" placeholder="Masukkan messagingSenderId" /></div>
                         <div class="form-group"><label for="sourceAppId">appId</label><input type="text" id="sourceAppId" placeholder="1:xxx:web:xxx" /></div>
-                        <button class="btn-test" id="testSourceBtn">🔍 Test Connection</button>
+                        <button class="btn-test" id="testSourceBtn">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            Test Connection
+                        </button>
                     </div>
 
                     <div class="connection-info" id="sourceConnectionInfo" style="display:none;">
@@ -466,7 +954,10 @@
                         <div class="paste-config-box">
                             <label>⚡ Paste Kode Config Firebase (auto-isi form di bawah)</label>
                             <textarea class="config-paste-input" id="destConfigPaste" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...",&#10;  databaseURL: "...",&#10;  ...&#10;};'></textarea>
-                            <button class="btn-secondary" id="destParseConfigBtn" type="button">⚡ Auto-Isi dari Paste</button>
+                            <button class="btn-secondary" id="destParseConfigBtn" type="button">
+                                <svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                                Auto-Isi dari Paste
+                            </button>
                             <div class="paste-config-hint">Bisa paste kode lengkap dari Firebase Console (yang ada import, comment, dll), gak masalah.</div>
                         </div>
                         <div class="form-group"><label for="destApiKey">apiKey</label><input type="text" id="destApiKey" placeholder="Masukkan apiKey" /></div>
@@ -476,7 +967,10 @@
                         <div class="form-group"><label for="destStorageBucket">storageBucket</label><input type="text" id="destStorageBucket" placeholder="project-id.appspot.com" /></div>
                         <div class="form-group"><label for="destMessagingSenderId">messagingSenderId</label><input type="text" id="destMessagingSenderId" placeholder="Masukkan messagingSenderId" /></div>
                         <div class="form-group"><label for="destAppId">appId</label><input type="text" id="destAppId" placeholder="1:xxx:web:xxx" /></div>
-                        <button class="btn-test" id="testDestBtn">🔍 Test Connection</button>
+                        <button class="btn-test" id="testDestBtn">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            Test Connection
+                        </button>
                     </div>
 
                     <div class="connection-info" id="destConnectionInfo" style="display:none;">
@@ -491,11 +985,14 @@
             <section class="nodes-card" id="nodesCard" style="display:none;">
                 <div class="card-header">
                     <h3>📂 Struktur Data Source (pilih yang mau dipindah)</h3>
-                    <button class="btn-secondary" id="loadStructureBtn">🔄 Muat Ulang Struktur</button>
+                    <button class="btn-secondary" id="loadStructureBtn">
+                        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                        Muat Ulang
+                    </button>
                 </div>
                 <div class="nodes-toolbar">
-                    <button class="btn-mini" id="selectAllBtn">☑️ Pilih Semua</button>
-                    <button class="btn-mini" id="selectNoneBtn">⬜ Kosongkan</button>
+                    <button class="btn-mini" id="selectAllBtn">☑️ Semua</button>
+                    <button class="btn-mini" id="selectNoneBtn">⬜ Kosong</button>
                     <input type="text" id="nodeSearch" placeholder="🔍 Cari node..." />
                     <span class="hint" id="nodesHint"></span>
                 </div>
@@ -510,25 +1007,31 @@
                     <h3>📝 Input Manual (opsional)</h3>
                 </div>
                 <div class="manual-tabs">
-                    <button class="manual-tab active" id="tabBulk" data-tab="bulk">📦 Paste Banyak Node Sekaligus</button>
+                    <button class="manual-tab active" id="tabBulk" data-tab="bulk">📦 Paste Banyak Node</button>
                     <button class="manual-tab" id="tabSingle" data-tab="single">✏️ Tambah 1 Node</button>
                 </div>
 
                 <div class="manual-panel active" id="panelBulk">
                     <div class="manual-note">
                         Paste JSON dengan format <code>{ "namaNode1": {...}, "namaNode2": {...} }</code> —
-                        tiap key di level atas otomatis jadi 1 node/tabel terpisah. Atau klik "Ambil dari Source" buat isi otomatis dari node yang lagi dicentang.
+                        tiap key di level atas otomatis jadi 1 node/tabel terpisah.
                     </div>
                     <textarea class="manual-json" id="bulkJsonInput" placeholder='{&#10;  "users": { "u1": { "name": "Budi" } },&#10;  "products": { "p1": { "title": "Voucher 10rb" } }&#10;}'></textarea>
                     <div class="manual-actions">
-                        <button class="btn-secondary" id="fetchFromSourceBtn">⬇️ Ambil dari Source (node tercentang)</button>
-                        <button class="btn-secondary" id="applyBulkBtn">⚡ Sebar ke Node List</button>
+                        <button class="btn-secondary" id="fetchFromSourceBtn">
+                            <svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                            Ambil dari Source
+                        </button>
+                        <button class="btn-secondary" id="applyBulkBtn">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Sebar ke Node List
+                        </button>
                         <button class="btn-mini" id="clearBulkBtn">🗑️ Kosongkan</button>
                     </div>
                 </div>
 
                 <div class="manual-panel" id="panelSingle">
-                    <div class="manual-note">Tambah/timpa satu node secara manual. Kalau nama node sudah ada di list, isinya akan ditimpa dengan data manual ini.</div>
+                    <div class="manual-note">Tambah/timpa satu node secara manual.</div>
                     <div class="manual-row">
                         <div class="form-group">
                             <label for="singleNodeKey">Nama Node / Tabel</label>
@@ -537,7 +1040,10 @@
                     </div>
                     <textarea class="manual-json" id="singleJsonInput" placeholder='{ "u1": { "name": "Budi" } }'></textarea>
                     <div class="manual-actions">
-                        <button class="btn-secondary" id="applySingleBtn">⚡ Tambah / Timpa Node</button>
+                        <button class="btn-secondary" id="applySingleBtn">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            Tambah / Timpa
+                        </button>
                         <button class="btn-mini" id="clearSingleBtn">🗑️ Kosongkan</button>
                     </div>
                 </div>
@@ -583,7 +1089,10 @@
             </section>
 
             <div class="action-section">
-                <button class="btn-migrate" id="startMigrationBtn" disabled>🚀 Start Migration</button>
+                <button class="btn-migrate" id="startMigrationBtn" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                    Start Migration
+                </button>
             </div>
 
             <section class="progress-card" id="progressSection" style="display:none;">
@@ -601,7 +1110,10 @@
             <section class="logs-card">
                 <div class="logs-header">
                     <h3>📋 Logs</h3>
-                    <button class="btn-clear-logs" id="clearLogsBtn">Clear</button>
+                    <button class="btn-clear-logs" id="clearLogsBtn">
+                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        Clear
+                    </button>
                 </div>
                 <div class="logs-terminal" id="logsTerminal">
                     <div class="log-entry info">[INFO] Ready to start migration</div>
@@ -621,13 +1133,40 @@
             </section>
         </main>
 
-        <!-- ========== FOOTER COPYRIGHT ========== -->
+        <!-- ========== PREVIEW MODAL ========== -->
+        <div class="preview-modal" id="previewModal">
+            <div class="preview-modal-content">
+                <div class="preview-modal-header">
+                    <h3>📄 Preview Data: <span id="previewNodeName">-</span></h3>
+                    <button class="preview-modal-close" id="previewModalClose">✕</button>
+                </div>
+                <div class="preview-modal-body">
+                    <div class="preview-info" id="previewInfo">
+                        <div class="preview-info-item">
+                            <span class="label">Tipe</span>
+                            <span class="value" id="previewType">-</span>
+                        </div>
+                        <div class="preview-info-item">
+                            <span class="label">Total Item</span>
+                            <span class="value" id="previewCount">-</span>
+                        </div>
+                        <div class="preview-info-item">
+                            <span class="label">Ukuran Data</span>
+                            <span class="value" id="previewSize">-</span>
+                        </div>
+                    </div>
+                    <pre id="previewContent">-</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== FOOTER ========== -->
         <footer class="app-footer">
             <div>
-      <span class="heart"> </span> by 
+            <span class="heart"></span> by 
                 <span class="dev-name">xrezzky dev</span>
             </div>
-            <div class="version-text">Firebase Migration Tool v2.2.0</div>
+            <div class="version-text">Firebase Migration Tool v2.3.0</div>
         </footer>
     </div>
 
@@ -643,6 +1182,26 @@
     <script type="module">
         import { initializeApp } from 'firebase/app';
         import { getDatabase, ref, get, set, remove } from 'firebase/database';
+
+        // ============ THEME TOGGLE ============
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            currentTheme = theme;
+            if (theme === 'light') {
+                themeIcon.innerHTML = `<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM12 3c-2.69 0-4.77 2.05-4.77 4.77 0 2.72 2.08 4.77 4.77 4.77s4.77-2.05 4.77-4.77C16.77 5.05 14.69 3 12 3z"/><path d="M12 19c-3.87 0-7-3.13-7-7 0-2.69 1.52-4.87 3.77-6.05C8.3 4.42 6.17 6.07 5 8.5 3.83 10.93 4.48 14.46 6.97 16.95 9.46 19.44 12.99 20.09 15.42 18.92 17.85 17.75 19.5 15.62 20.05 13.77 18.87 16.48 15.69 19 12 19z"/>`;
+            } else {
+                themeIcon.innerHTML = `<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM12 3c-2.69 0-4.77 2.05-4.77 4.77 0 2.72 2.08 4.77 4.77 4.77s4.77-2.05 4.77-4.77C16.77 5.05 14.69 3 12 3z"/><path d="M12 19c-3.87 0-7-3.13-7-7 0-2.69 1.52-4.87 3.77-6.05C8.3 4.42 6.17 6.07 5 8.5 3.83 10.93 4.48 14.46 6.97 16.95 9.46 19.44 12.99 20.09 15.42 18.92 17.85 17.75 19.5 15.62 20.05 13.77 18.87 16.48 15.69 19 12 19z"/>`;
+            }
+        }
+        setTheme(currentTheme);
+        themeToggle.addEventListener('click', () => {
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
 
         // ============ LOGGER ============
         const logger = {
@@ -833,6 +1392,33 @@
             return { valid: true };
         }
 
+        function countNodes(data) {
+            if (!data || typeof data !== 'object') return 0;
+            let count = 0;
+            for (const key in data) {
+                count++;
+                if (typeof data[key] === 'object' && data[key] !== null) count += countNodes(data[key]);
+            }
+            return count;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDuration(ms) {
+            const s = Math.floor(ms / 1000);
+            const m = Math.floor(s / 60);
+            const h = Math.floor(m / 60);
+            if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
+            if (m > 0) return `${m}m ${s % 60}s`;
+            return `${s}s`;
+        }
+
         // ============ STATE ============
         let sourceConn = null;
         let destConn = null;
@@ -842,16 +1428,76 @@
         let rootNodes = [];
         let manualNodeData = {};
 
+        // ============ PREVIEW MODAL ============
+        const previewModal = document.getElementById('previewModal');
+        const previewModalClose = document.getElementById('previewModalClose');
+        const previewNodeName = document.getElementById('previewNodeName');
+        const previewContent = document.getElementById('previewContent');
+        const previewType = document.getElementById('previewType');
+        const previewCount = document.getElementById('previewCount');
+        const previewSize = document.getElementById('previewSize');
+
+        async function showPreview(nodeKey) {
+            try {
+                let data;
+                const isManual = Object.prototype.hasOwnProperty.call(manualNodeData, nodeKey);
+                if (isManual) {
+                    data = manualNodeData[nodeKey];
+                } else if (sourceConnected) {
+                    const snap = await get(ref(sourceConn.db, nodeKey));
+                    data = snap.exists() ? snap.val() : null;
+                } else {
+                    logger.error('Source tidak terhubung!');
+                    return;
+                }
+
+                if (data === null || data === undefined) {
+                    logger.error(`Node "${nodeKey}" tidak memiliki data.`);
+                    return;
+                }
+
+                previewNodeName.textContent = nodeKey;
+                previewContent.textContent = JSON.stringify(data, null, 2);
+                
+                const type = typeof data;
+                previewType.textContent = type === 'object' && data !== null && !Array.isArray(data) ? 'Object' : 
+                                         Array.isArray(data) ? 'Array' : type;
+                previewCount.textContent = type === 'object' && data !== null ? countNodes(data) : 'N/A';
+                previewSize.textContent = formatBytes(JSON.stringify(data).length);
+                
+                previewModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } catch (e) {
+                logger.error(`Gagal preview node "${nodeKey}": ${e.message}`);
+            }
+        }
+
+        function closePreview() {
+            previewModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        previewModalClose.addEventListener('click', closePreview);
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) closePreview();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePreview();
+        });
+
         // ============ CONNECTION HANDLERS ============
         async function testSource() {
             const config = getConfig('source');
             const val = validateConfig(config);
             if (!val.valid) { logger.error('Source: ' + val.error); return; }
             document.getElementById('testSourceBtn').disabled = true;
-            document.getElementById('testSourceBtn').textContent = '⏳ Testing...';
+            document.getElementById('testSourceBtn').innerHTML = '⏳ Testing...';
             const result = await testConnection(config);
             document.getElementById('testSourceBtn').disabled = false;
-            document.getElementById('testSourceBtn').textContent = '🔍 Test Connection';
+            document.getElementById('testSourceBtn').innerHTML = `
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                Test Connection
+            `;
             if (result.success) {
                 sourceConn = result;
                 sourceConnected = true;
@@ -879,10 +1525,13 @@
             const val = validateConfig(config);
             if (!val.valid) { logger.error('Destination: ' + val.error); return; }
             document.getElementById('testDestBtn').disabled = true;
-            document.getElementById('testDestBtn').textContent = '⏳ Testing...';
+            document.getElementById('testDestBtn').innerHTML = '⏳ Testing...';
             const result = await testConnection(config);
             document.getElementById('testDestBtn').disabled = false;
-            document.getElementById('testDestBtn').textContent = '🔍 Test Connection';
+            document.getElementById('testDestBtn').innerHTML = `
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                Test Connection
+            `;
             if (result.success) {
                 destConn = result;
                 destConnected = true;
@@ -970,7 +1619,6 @@
                 const liveNode = rootNodes.find(n => n.key === key);
                 const isManual = Object.prototype.hasOwnProperty.call(manualNodeData, key);
                 
-                // Search filter
                 if (search && !key.toLowerCase().includes(search)) {
                     return;
                 }
@@ -978,7 +1626,7 @@
                 
                 let typeLabel;
                 let typeClass = 'node-type';
-                if (isManual && liveNode) { typeLabel = '📝 manual (override live)'; typeClass += ' manual'; }
+                if (isManual && liveNode) { typeLabel = '📝 manual (override)'; typeClass += ' manual'; }
                 else if (isManual) { typeLabel = '📝 manual only'; typeClass += ' manual'; }
                 else { typeLabel = liveNode.type; }
 
@@ -989,8 +1637,9 @@
                     <input type="checkbox" class="node-checkbox" data-key="${key}" ${shouldCheck ? 'checked' : ''} />
                     <span class="node-key">${key}</span>
                     <span class="${typeClass}">${typeLabel}</span>
-                    ${liveNode && liveNode.count > 0 ? `<span class="node-count">📊 ${liveNode.count} item</span>` : ''}
-                    ${isManual ? `<button class="btn-mini remove-manual-btn" data-key="${key}" type="button">✖ hapus manual</button>` : ''}
+                    ${liveNode && liveNode.count > 0 ? `<span class="node-count">📊 ${liveNode.count}</span>` : ''}
+                    ${isManual ? `<button class="btn-mini remove-manual-btn" data-key="${key}" type="button">✖</button>` : ''}
+                    <button class="node-preview-btn" data-key="${key}" type="button" title="Preview data">👁️</button>
                 `;
                 listEl.appendChild(row);
             });
@@ -1005,10 +1654,17 @@
             document.querySelectorAll('.node-checkbox').forEach(cb => cb.addEventListener('change', updateNodesHint));
             document.querySelectorAll('.remove-manual-btn').forEach(btn => btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const key = btn.dataset.key;
                 delete manualNodeData[key];
                 logger.info(`Data manual untuk "${key}" dihapus.`);
                 renderNodesList();
+            }));
+            document.querySelectorAll('.node-preview-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const key = btn.dataset.key;
+                showPreview(key);
             }));
             updateNodesHint();
             refreshVisibilityByNodeCount();
@@ -1088,7 +1744,7 @@
             if (keys.length === 0) { logger.error('Gak ada node live yang tercentang buat diambil.'); return; }
             const btn = document.getElementById('fetchFromSourceBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ Mengambil...';
+            btn.innerHTML = '⏳ Mengambil...';
             try {
                 const result = {};
                 for (const key of keys) {
@@ -1096,12 +1752,15 @@
                     result[key] = snap.exists() ? snap.val() : null;
                 }
                 document.getElementById('bulkJsonInput').value = JSON.stringify(result, null, 2);
-                logger.success(`Data ${keys.length} node diambil dari source ke kolom paste. Edit dulu kalau perlu, lalu klik "Sebar ke Node List".`);
+                logger.success(`Data ${keys.length} node diambil dari source ke kolom paste.`);
             } catch (e) {
                 logger.error('Gagal ambil data dari source: ' + e.message);
             }
             btn.disabled = false;
-            btn.textContent = '⬇️ Ambil dari Source (node tercentang)';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>
+                Ambil dari Source
+            `;
         }
 
         function applyBulkJson() {
@@ -1189,7 +1848,7 @@
 
             if (baseReady && sourceConnected && sourceConn.databaseURL === destConn.databaseURL) {
                 btn.disabled = true;
-                btn.textContent = '⚠️ Source & Destination Sama';
+                btn.innerHTML = '⚠️ Source & Destination Sama';
                 btn.classList.remove('danger');
                 return;
             }
@@ -1197,17 +1856,17 @@
             btn.disabled = !baseReady;
             const mode = getMode();
             if (!baseReady) {
-                if (!destConnected) btn.textContent = '⏳ Connect Destination Dulu';
-                else if (!sourceOk) btn.textContent = '⏳ Connect Source (ada node non-manual)';
-                else btn.textContent = '☑️ Pilih Minimal 1 Node';
+                if (!destConnected) btn.innerHTML = '⏳ Connect Destination Dulu';
+                else if (!sourceOk) btn.innerHTML = '⏳ Connect Source (ada node non-manual)';
+                else btn.innerHTML = '☑️ Pilih Minimal 1 Node';
                 btn.classList.remove('danger');
                 return;
             }
             if (mode === 'move') {
-                btn.textContent = `✂️ Pindahkan ${selected} Node`;
+                btn.innerHTML = `✂️ Pindahkan ${selected} Node`;
                 btn.classList.add('danger');
             } else {
-                btn.textContent = `🚀 Salin ${selected} Node`;
+                btn.innerHTML = `🚀 Salin ${selected} Node`;
                 btn.classList.remove('danger');
             }
         }
@@ -1356,32 +2015,11 @@
             document.getElementById('summaryMode').textContent = summary.mode;
         }
 
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function formatDuration(ms) {
-            const s = Math.floor(ms / 1000);
-            const m = Math.floor(s / 60);
-            const h = Math.floor(m / 60);
-            if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
-            if (m > 0) return `${m}m ${s % 60}s`;
-            return `${s}s`;
-        }
-
-        // ============ SEARCH / FILTER NODE ============
-        document.getElementById('nodeSearch').addEventListener('input', renderNodesList);
-
-        // ============ CLOSE RULES ALERT ============
+        // ============ EVENT LISTENERS ============
         document.getElementById('closeRulesAlert').addEventListener('click', () => {
             document.getElementById('rulesAlert').style.display = 'none';
         });
 
-        // ============ EVENT LISTENERS ============
         document.getElementById('testSourceBtn').addEventListener('click', testSource);
         document.getElementById('testDestBtn').addEventListener('click', testDest);
         document.getElementById('sourceParseConfigBtn').addEventListener('click', () => handleParseConfig('source', 'sourceConfigPaste'));
@@ -1410,11 +2048,12 @@
             document.getElementById('singleNodeKey').value = '';
             document.getElementById('singleJsonInput').value = '';
         });
+        document.getElementById('nodeSearch').addEventListener('input', renderNodesList);
 
-        logger.info('🔥 Firebase Migration Tool Ready! Connect source & destination dulu ya.');
+        logger.info('🔥 Firebase Migration Tool v2.3.0 Ready!');
         logger.info('📌 Jangan lupa set rules database ke publik sementara!');
         document.getElementById('startMigrationBtn').disabled = true;
-        document.getElementById('startMigrationBtn').textContent = '⏳ Connect Both Databases';
+        document.getElementById('startMigrationBtn').innerHTML = '⏳ Connect Both Databases';
     </script>
 </body>
     </html>
